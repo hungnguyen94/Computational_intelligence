@@ -6,7 +6,7 @@ package main.java;
 public class main {
 
     public static void main(String[] args) {
-        Matrix matrix = new Matrix("/mnt/data/Development/computational_int/src/main/resources/easy_maze.txt");
+        Matrix matrix = new Matrix("src/main/resources/easy_maze.txt");
         System.out.println(matrix.toString());
     }
 
