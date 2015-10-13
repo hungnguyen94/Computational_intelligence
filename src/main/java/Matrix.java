@@ -154,13 +154,13 @@ public class Matrix {
         for(int i = 0; i < rows; i++) {
             for(int j = 0; j < columns; j++) {
                 if(ant.getCurrentPos().equals(new Coordinates(i, j)))
-                    mString += "A ";
+                    mString += "\033[32;1mA ";
                 else if(vertex.contains(new Coordinates(i, j)))
-                    mString += "V ";
+                    mString += "\033[35;0mV ";
                 else if(deadEnds.contains(new Coordinates(i, j))) {
-                    mString += "D ";
+                    mString += "\033[35;0mD ";
                 } else {
-                    mString += (((int) matrix[i][j]) == 1)? "1": (char)2588;
+                    mString += (((int) matrix[i][j]) == 1)? "\033[31;0m\u2022": "\033[30;1m\u2588";
                     mString += " ";
                 }
             }
