@@ -23,7 +23,7 @@ public class main {
         });
         timer.setRepeats(true);
         timer.start();
-        while(true) {
+        while(true) { 
             if(ant.isVertexReached()) {
                 timer.stop();
                 break;
