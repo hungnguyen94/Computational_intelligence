@@ -47,10 +47,10 @@ public class Coordinates {
 
     }
 
-    @Override
-    public int hashCode() {
-        int result = row;
-        result = 31 * result + column;
-        return result;
-    }
+//    @Override
+//    public int hashCode() {
+//        int result = row;
+//        result = 31 * result + column;
+//        return result;
+//    }
 }

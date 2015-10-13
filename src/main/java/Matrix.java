@@ -15,7 +15,6 @@ public class Matrix {
     private int columns;
     private double[][] matrix;
     private List<Coordinates> vertex;
-    private List<Coordinates> deadEnds;
 
 
     /**
@@ -24,7 +23,6 @@ public class Matrix {
      */
     public Matrix(String file) {
         vertex = new ArrayList<Coordinates>();
-        deadEnds = new ArrayList<Coordinates>();
         try {
             loadFile(file);
         } catch(FileNotFoundException e) {
@@ -35,7 +33,6 @@ public class Matrix {
     public Matrix(int rows, int columns) {
         matrix = new double[rows][columns];
         vertex = new ArrayList<Coordinates>();
-        deadEnds = new ArrayList<Coordinates>();
     }
 
     /**
@@ -117,8 +114,6 @@ public class Matrix {
                 if(matrix[i][j] == 1) {
                     if(sumNeighbours(i, j) >= 3) {
                         vertex.add(new Coordinates(i, j));
-                    } else if(sumNeighbours(i, j) == 1) {
-                        deadEnds.add(new Coordinates(i,j));
                     }
                 }
             }
@@ -136,9 +131,7 @@ public class Matrix {
 
                 if(vertex.contains(new Coordinates(i, j)))
                     mString += "V ";
-                else if(deadEnds.contains(new Coordinates(i, j))) {
-                    mString += "D ";
-                } else
+                else
                     mString += (int)matrix[i][j] + " ";
             }
             mString += "\n";
@@ -157,9 +150,7 @@ public class Matrix {
                     mString += "\033[32;1mA ";
                 else if(vertex.contains(new Coordinates(i, j)))
                     mString += "\033[35;0mV ";
-                else if(deadEnds.contains(new Coordinates(i, j))) {
-                    mString += "\033[35;0mD ";
-                } else {
+                else {
                     mString += (((int) matrix[i][j]) == 1)? "\033[31;0m\u2022": "\033[30;1m\u2588";
                     mString += " ";
                 }

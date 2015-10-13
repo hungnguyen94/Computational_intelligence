@@ -12,6 +12,7 @@ public class Ant {
     private final static double pheromoneDrop = 0.5f;
     private Stack<Direction> tour;
     private boolean vertexReached;
+    private Direction currentDirection;
 
     /**
      * Contructor for ant with starting position x,y
@@ -22,6 +23,7 @@ public class Ant {
         this.maze = maze;
         tour = new Stack<Direction>();
         vertexReached = false;
+        currentDirection = Direction.NORTH;
     }
 
     /**
@@ -32,11 +34,35 @@ public class Ant {
         return currentPos;
     }
 
+    private Direction getOpposite(Direction d) {
+        switch(d) {
+            case NORTH:
+                return Direction.SOUTH;
+            case EAST:
+                return Direction.WEST;
+            case SOUTH:
+                return Direction.NORTH;
+            case WEST:
+                return Direction.EAST;
+            default:
+                return Direction.NONE;
+        }
+    }
+
     public Direction calcProbabilityMove() {
         List<Direction> possibleDirections = maze.getPossibleDirections(getCurrentPos());
-        int random = (int) (Math.random() * possibleDirections.size());
-
-        return (possibleDirections.size() == 0)? Direction.NONE: possibleDirections.get(random);
+        Direction nextMove = Direction.NONE;
+        // Als er mogelijke richtingen zijn.
+        if(possibleDirections.size() != 0) {
+            Direction opposite = getOpposite(currentDirection);
+            // Verwijder de opposite direction.
+            if(possibleDirections.size() > 1 && possibleDirections.contains(opposite)) {
+                possibleDirections.remove(opposite);
+            }
+            int random = (int) (Math.random() * possibleDirections.size());
+            nextMove = possibleDirections.get(random);
+        }
+        return nextMove;
     }
 
     public boolean isVertexReached() {
@@ -50,18 +76,22 @@ public class Ant {
         switch(calcProbabilityMove()) {
             case NORTH:
                 currentPos.setRow(currentPos.getRow() - 1);
+                currentDirection = Direction.NORTH;
                 tour.push(Direction.NORTH);
                 break;
             case EAST:
                 currentPos.setColumn(currentPos.getColumn() + 1);
+                currentDirection = Direction.EAST;
                 tour.push(Direction.EAST);
                 break;
             case SOUTH:
                 currentPos.setRow(currentPos.getRow() + 1);
+                currentDirection = Direction.SOUTH;
                 tour.push(Direction.SOUTH);
                 break;
             case WEST:
                 currentPos.setColumn(currentPos.getColumn() - 1);
+                currentDirection = Direction.WEST;
                 tour.push(Direction.WEST);
                 break;
             default:
@@ -69,7 +99,7 @@ public class Ant {
         }
         System.out.println(toString());
         //System.out.println("Current pos: " + currentPos);
-        if(getCurrentPos().equals(new Coordinates(24, 14))) {
+        if(getCurrentPos().equals(new Coordinates(3, 10))) {
             System.out.println("VERTEX reached: " + getCurrentPos());
             vertexReached = true;
             System.out.println(tour);
