@@ -14,7 +14,8 @@ public class Matrix {
     private int rows;
     private int columns;
     private double[][] matrix;
-    private List<Coordinates> edges;
+    private List<Coordinates> vertex;
+    private List<Coordinates> deadEnds;
 
 
     /**
@@ -22,7 +23,8 @@ public class Matrix {
      * @param file
      */
     public Matrix(String file) {
-        edges = new ArrayList<Coordinates>();
+        vertex = new ArrayList<Coordinates>();
+        deadEnds = new ArrayList<Coordinates>();
         try {
             loadFile(file);
         } catch(FileNotFoundException e) {
@@ -32,7 +34,8 @@ public class Matrix {
 
     public Matrix(int rows, int columns) {
         matrix = new double[rows][columns];
-        edges = new ArrayList<Coordinates>();
+        vertex = new ArrayList<Coordinates>();
+        deadEnds = new ArrayList<Coordinates>();
     }
 
     /**
@@ -45,8 +48,9 @@ public class Matrix {
         return matrix[x][y];
     }
 
-
-
+    public List<Coordinates> getAllVertex() {
+        return vertex;
+    }
 
     /**
      * Laad matrix van een file.
@@ -68,6 +72,25 @@ public class Matrix {
         calculateEdges();
     }
 
+    public List<Direction> getPossibleDirections(Coordinates position) {
+        int row = position.getRow();
+        int column = position.getColumn();
+        List<Direction> directions = new ArrayList<Direction>();
+
+        if(row != rows-1 && matrix[row+1][column] == 1)
+            directions.add(Direction.SOUTH);
+
+        if(column != columns-1 && matrix[row][column+1] == 1)
+            directions.add(Direction.EAST);
+
+        if(row != 0 && matrix[row-1][column] == 1)
+            directions.add(Direction.NORTH);
+
+        if(column != 0 && matrix[row][column-1] == 1)
+            directions.add(Direction.WEST);
+
+        return directions;
+    }
     /**
      * returns the sum of the neighbours
      * @param i x
@@ -86,18 +109,21 @@ public class Matrix {
     }
 
     /**
-     * Slaat alle edges op in edges arraylist
+     * Slaat alle vertex op in vertex arraylist
      */
     public void calculateEdges() {
-        for(int i = 1; i < rows -1; i++) {
-            for(int j = 1; j < columns-1; j++) {
+        for(int i = 0; i < rows -1; i++) {
+            for(int j = 0; j < columns-1; j++) {
                 if(matrix[i][j] == 1) {
-                    if(sumNeighbours(i, j) >= 3)
-                        edges.add(new Coordinates(i, j));
+                    if(sumNeighbours(i, j) >= 3) {
+                        vertex.add(new Coordinates(i, j));
+                    } else if(sumNeighbours(i, j) == 1) {
+                        deadEnds.add(new Coordinates(i,j));
+                    }
                 }
             }
         }
-        System.out.println(edges);
+        System.out.println(vertex);
     }
 
     /**
@@ -107,10 +133,36 @@ public class Matrix {
         String mString = "";
         for(int i = 0; i < rows; i++) {
             for(int j = 0; j < columns; j++) {
-                if(edges.contains(new Coordinates(i, j)))
-                    mString += "E ";
-                else
+
+                if(vertex.contains(new Coordinates(i, j)))
+                    mString += "V ";
+                else if(deadEnds.contains(new Coordinates(i, j))) {
+                    mString += "D ";
+                } else
                     mString += (int)matrix[i][j] + " ";
+            }
+            mString += "\n";
+        }
+        return mString;
+    }
+
+    /**
+     * Print matrix with ant.
+     */
+    public String toStringWithAnt(Ant ant) {
+        String mString = "";
+        for(int i = 0; i < rows; i++) {
+            for(int j = 0; j < columns; j++) {
+                if(ant.getCurrentPos().equals(new Coordinates(i, j)))
+                    mString += "A ";
+                else if(vertex.contains(new Coordinates(i, j)))
+                    mString += "V ";
+                else if(deadEnds.contains(new Coordinates(i, j))) {
+                    mString += "D ";
+                } else {
+                    mString += (((int) matrix[i][j]) == 1)? "1": (char)2588;
+                    mString += " ";
+                }
             }
             mString += "\n";
         }

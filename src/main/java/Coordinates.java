@@ -5,26 +5,34 @@ package main.java;
  */
 public class Coordinates {
 
-    private int x;
-    private int y;
+    private int row;
+    private int column;
 
-    public Coordinates(int x, int y) {
-        this.x = x;
-        this.y = y;
+    public Coordinates(int row, int column) {
+        this.row = row;
+        this.column = column;
     }
 
-    public int getX() {
-        return x;
+    public int getRow() {
+        return row;
     }
 
-    public int getY() {
-        return y;
+    public int getColumn() {
+        return column;
+    }
+
+    public void setRow(int row) {
+        this.row = row;
+    }
+
+    public void setColumn(int column) {
+        this.column = column;
     }
 
     @Override
     public String toString() {
         return "Coordinates: " +
-                x + ", " + y;
+                row + ", " + column;
     }
 
     @Override
@@ -34,15 +42,15 @@ public class Coordinates {
 
         Coordinates that = (Coordinates) o;
 
-        if(x != that.x) return false;
-        return y == that.y;
+        if(row != that.row) return false;
+        return column == that.column;
 
     }
 
     @Override
     public int hashCode() {
-        int result = x;
-        result = 31 * result + y;
+        int result = row;
+        result = 31 * result + column;
         return result;
     }
 }
