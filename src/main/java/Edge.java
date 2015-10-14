@@ -1,27 +1,62 @@
 package main.java;
 
-import java.util.Set;
+import java.util.Collection;
 import java.util.TreeSet;
 
 /**
- * Edge class.
+ * Class to represent edges.
  */
 public class Edge {
-    private Set<Coordinates> coordinatesList;
+    private Collection<Coordinate> coordinateList;
 
     public Edge() {
-        this.coordinatesList = new TreeSet<Coordinates>();
+        this.coordinateList = new TreeSet<>();
     }
 
-    public void addCoordinates(Coordinates coord) {
-        coordinatesList.add(coord);
+    /**
+     * Add a coordinate belonging to this edge.
+     * @param coord coordinate.
+     */
+    public void addCoordinates(Coordinate coord) {
+        coordinateList.add(new Coordinate(coord));
     }
 
     public int getSize() {
-        return coordinatesList.size();
+        return coordinateList.size();
     }
 
-    public void removeCoordinates(Coordinates coord) {
-        coordinatesList.remove(coord);
+    public void removeCoordinates(Coordinate coord) {
+        coordinateList.remove(coord);
+    }
+
+    public void clear() {
+        coordinateList.clear();
+    }
+
+    /**
+     * Returns all coordinates in this edge.
+     * @return all coordinates in this edge.
+     */
+    public Collection<Coordinate> getCoordinates() {
+        return coordinateList;
+    }
+
+    /**
+     * Check if coordinate is in this edge.
+     * @param coord coordinates
+     * @return True if coordinate is in edge.
+     */
+    public boolean containsCoordinate(Coordinate coord) {
+        boolean contained = coordinateList.contains(coord);
+        return contained;
+    }
+
+    @Override
+    public String toString() {
+        String output = "Edges: ";
+        for(Coordinate coordinate : coordinateList) {
+            output += coordinate + " ";
+        }
+        return output;
     }
 }
