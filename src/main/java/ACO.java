@@ -8,8 +8,8 @@ import java.awt.EventQueue;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Ant Colony Optimization
@@ -17,9 +17,11 @@ import java.util.List;
 public class ACO {
 
     public static final int amountOfAnts = 50;
+    // Coordinate(row, column)
     public static final Coordinate startingPosition = new Coordinate(0, 0);
-    public static final double pheromoneDropRate = 200D;
-    public static final double evaporationConst = 0.35D;
+    public static final Coordinate goalPosition = new Coordinate(39, 44);
+    public static final double pheromoneDropRate = 20D;
+    public static final double evaporationConst = 0.3D;
     public static final double startPheromoneValue = 1.0D;
     public static final double alpha = 1.0D;
     public static final double beta = 3.D;
@@ -28,7 +30,7 @@ public class ACO {
         Maze maze = new Maze("src/main/resources/medium_maze.txt");
 
 
-        List<Ant> antList = new ArrayList<>();
+        List<Ant> antList = new CopyOnWriteArrayList<>();
 
         for(int i = 0; i < amountOfAnts; i++) {
             antList.add(new Ant(new Coordinate(startingPosition), maze));
@@ -57,10 +59,9 @@ public class ACO {
             @Override
             public void run() {
                 while(true) {
-//                Ant ant = antList.get(antIndex);
-                    for(Ant ant1 : antList) {
-                        if(!ant1.isGoalReached()) {
-                            ant1.move();
+                    for(Ant ant : antList) {
+                        if(!ant.isGoalReached()) {
+                            ant.move();
                         }
                     }
                     if(allGoalsReached(antList)) {
@@ -83,7 +84,7 @@ public class ACO {
                 } catch(ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
                 }
 
-                window.setSize(maze.getColumns() * 20 + 40, maze.getRows() * 20 + 40);
+                window.setSize(maze.getColumns() * Grid.cellSize + Grid.cellSize * 3, maze.getRows() * Grid.cellSize + Grid.cellSize * 3);
                 window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 window.add(grid);
                 window.setVisible(true);

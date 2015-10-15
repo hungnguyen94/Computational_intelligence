@@ -18,19 +18,25 @@ public class Grid extends JPanel {
     private List<Point> fillWalls;
     private List<Point> fillRoute;
     private List<Point> fillAnts;
+    private List<Point> fillGoals;
     private Map<Point, Color> fillPheromone;
     private int xSize;
     private int ySize;
-    private final static int cellSize = 20;
-    private final static int antSize = 3;
+    public final static int cellSize = 10;
+    public final static int antSize = 2;
 
     public Grid(int xSize, int ySize) {
         fillWalls = new ArrayList<Point>();
         fillRoute = new ArrayList<Point>();
         fillAnts = new ArrayList<Point>();
+        fillGoals = new ArrayList<Point>();
         fillPheromone = new HashMap<Point, Color>();
         this.xSize = xSize;
         this.ySize = ySize;
+        Point startPoint = new Point(ACO.startingPosition.getColumn(), ACO.startingPosition.getRow());
+        Point endPoint = new Point(ACO.goalPosition.getColumn(), ACO.goalPosition.getRow());
+        fillGoals.add(startPoint);
+        fillGoals.add(endPoint);
     }
 
     @Override
@@ -45,7 +51,7 @@ public class Grid extends JPanel {
         for (Point fillCell : fillRoute) {
             int cellX = cellSize + (fillCell.x * cellSize);
             int cellY = cellSize + (fillCell.y * cellSize);
-            g.setColor(Color.WHITE);
+            g.setColor(Color.lightGray);
             g.fillRect(cellX, cellY, cellSize, cellSize);
         }
         for(Map.Entry<Point, Color> pointColorEntry : fillPheromone.entrySet()) {
@@ -55,7 +61,12 @@ public class Grid extends JPanel {
             g.fillRect(cellX, cellY, cellSize, cellSize);
         }
         fillPheromone.clear();
-
+        for(Point fillCell : fillGoals) {
+            int cellX = cellSize + (fillCell.x * cellSize);
+            int cellY = cellSize + (fillCell.y * cellSize);
+            g.setColor(Color.LIGHT_GRAY);
+            g.fillRect(cellX, cellY, cellSize, cellSize);
+        }
         for (Point fillCell : fillAnts) {
             int cellX = cellSize + (fillCell.x * cellSize);
             int cellY = cellSize + (fillCell.y * cellSize);
@@ -92,12 +103,6 @@ public class Grid extends JPanel {
             Color c = new Color(255, 0, 0, colorValue);
             fillPheromone.put(pointDoubleEntry.getKey(), c);
         }
-    }
-
-    public void addPheromone(Point p, Double pheromone) {
-        int colorValue = Math.min(pheromone.intValue(), 255);
-        Color c = new Color(255, colorValue, colorValue, colorValue);
-        fillPheromone.put(p, c);
     }
 
     public void addAnt(Point p) {

@@ -10,8 +10,7 @@ import java.util.Stack;
  */
 public class Ant {
 
-    private static final Coordinate goal1 = new Coordinate(39, 49);
-    private Coordinate goalPosition = goal1;
+    private Coordinate goalPosition = ACO.goalPosition;
     public static Stack<Direction> shortestDirections = new Stack<>();
 
     private Coordinate currentPos;
@@ -216,7 +215,8 @@ public class Ant {
 
             tourEdge.clear();
             vertexReached = true;
-            goalPosition = goalPosition.equals(ACO.startingPosition)? goal1: ACO.startingPosition;
+
+//            goalPosition = goalPosition.equals(ACO.startingPosition)? ACO.goalPosition: ACO.startingPosition;
         }
     }
 
