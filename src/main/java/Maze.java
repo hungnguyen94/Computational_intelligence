@@ -241,9 +241,11 @@ public class Maze {
      * @return the vertex at coordinate
      */
     public Vertex getVertex(Coordinate coordinate) {
-        for(Vertex vertex : getAllVertex()) {
-            if(vertex.getVertexCoordinate().equals(coordinate))
-                return vertex;
+        if(getAllVertex().contains(new Vertex(coordinate))) {
+            for(Vertex vertex : getAllVertex()) {
+                if(vertex.getVertexCoordinate().equals(coordinate))
+                    return vertex;
+            }
         }
         return null;
     }

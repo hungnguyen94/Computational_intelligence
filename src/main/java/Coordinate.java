@@ -1,5 +1,13 @@
 package main.java;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Class to represent coordinates.
  */
@@ -45,6 +53,58 @@ public class Coordinate implements Comparable {
 
     public int getColumn() {
         return column;
+    }
+
+    /**
+     * Extracts the coordinates from the maze coordinate files.
+     * @param file String containing the path to the file.
+     * @return List of coordinates.
+     */
+    public static List<Coordinate> readGoalCoordinates(String file) {
+        List<Coordinate> goalCoordinates = new ArrayList<>();
+        try {
+            Scanner sc = new Scanner(new File(file));
+            Pattern pattern = Pattern.compile("(\\d+)..(\\d+);");
+            Matcher matcher;
+            while(sc.hasNextLine()) {
+                String line = sc.nextLine();
+                matcher = pattern.matcher(line);
+                if(matcher.find()) {
+                    Coordinate coord = new Coordinate(Integer.valueOf(matcher.group(2)), Integer.valueOf(matcher.group(1)));
+                    goalCoordinates.add(coord);
+                }
+            }
+
+        } catch(FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return goalCoordinates;
+    }
+
+    /**
+     * Extracts the coordinates from the Tsp coordinate files.
+     * @param file String containing the path to the file.
+     * @return List of coordinates.
+     */
+    public static List<Coordinate> readTspCoordinates(String file) {
+        List<Coordinate> tspCoordinates = new ArrayList<>();
+        try {
+            Scanner sc = new Scanner(new File(file));
+            Pattern pattern = Pattern.compile("^\\d+.\\s*(\\d+).\\s*(\\d+);");
+            Matcher matcher;
+            sc.nextLine();
+            while(sc.hasNextLine()) {
+                String line = sc.nextLine();
+                matcher = pattern.matcher(line);
+                if(matcher.find()) {
+                    Coordinate coord = new Coordinate(Integer.valueOf(matcher.group(2)), Integer.valueOf(matcher.group(1)));
+                    tspCoordinates.add(coord);
+                }
+            }
+        } catch(FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return tspCoordinates;
     }
 
     @Override
