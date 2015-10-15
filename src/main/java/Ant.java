@@ -9,9 +9,10 @@ import java.util.Stack;
  * @author hung
  */
 public class Ant {
-    private Coordinate goalPosition = ACO.startingPosition;
-    private static final Coordinate goal1 = new Coordinate(14, 24);
-    public static Stack<Direction> shortestDirections;
+
+    private static final Coordinate goal1 = new Coordinate(39, 49);
+    private Coordinate goalPosition = goal1;
+    public static Stack<Direction> shortestDirections = new Stack<>();
 
     private Coordinate currentPos;
     private Maze maze;
@@ -36,7 +37,7 @@ public class Ant {
         this.lastVertex = new Vertex(getCurrentPos());
         this.visited = new Edge();
         this.tourEdge = new Edge();
-        shortestDirections = tourDirections;
+//        shortestDirections = tourDirections;
         checkVertex();
     }
 
@@ -92,8 +93,9 @@ public class Ant {
         for(Direction direction : directionList) {
             double currentPheromone = maze.getPheromone(position, direction);
 //            System.out.println("Pheromone for direction " + direction + ": " + currentPheromone);
-            Edge edge = vertex.getEdge(direction);
+//            Edge edge = vertex.getEdge(direction);
             // If edge length is unknown, use 5?
+            Edge edge = null;
             int lengthEdge = (edge != null)? edge.getSize(): 3;
             double probability = Math.pow(currentPheromone, ACO.alpha) * Math.pow(1.0D/lengthEdge, ACO.beta);
 
@@ -132,8 +134,11 @@ public class Ant {
             Map<Direction, Double> probabilityDirectionMap = getAllProbability(maze.getVertex(getCurrentPos()));
             double random = Math.random();
             double sumProbability = 0;
+//            for(Map.Entry<Direction, Double> directionDoubleEntry : probabilityDirectionMap.entrySet()) {
+//                System.out.println("Direction: \t" + directionDoubleEntry.getKey() + "\tProbability: " + directionDoubleEntry.getValue());
+//            }
             for(Map.Entry<Direction, Double> directionDoubleEntry : probabilityDirectionMap.entrySet()) {
-                double prob = Math.min(directionDoubleEntry.getValue(), 0.95D);
+                double prob = Math.min(directionDoubleEntry.getValue(), 0.99D);
                 sumProbability += prob;
 //                System.out.println("Direction: \t" + directionDoubleEntry.getKey() + "\tProbability: " + prob);
                 if(random < sumProbability) {
@@ -195,18 +200,22 @@ public class Ant {
 
         if(getCurrentPos().equals(goalPosition)) {
             // Pheromone value calculation and apply.
-            maze.increasePheromone(tourEdge, ACO.pheromoneDropRate * (1.0D / tourEdge.getSize()));
-            maze.evaporatePheromone();
+            double pval = Math.pow(ACO.pheromoneDropRate, ACO.alpha) * (1.0D / Math.pow(tourEdge.getSize(), ACO.beta));
+//            System.out.println(pval + " \tlength: " + tourEdge.getSize());
+            maze.increasePheromone(tourEdge, pval);
+//            maze.evaporatePheromone();
 
-            if(shortestDirections.size() > tourDirections.size()) {
+            if(shortestDirections.size() > tourDirections.size() || shortestDirections.size() == 0) {
                 shortestDirections = tourDirections;
-                System.out.println(tourDirections);
+                System.out.println("shortest: " + shortestDirections.size() + "\ttour: " + tourDirections.size());
+                System.out.println(shortestDirections);
                 tourDirections = new Stack<>();
-            } else
+            } else {
                 tourDirections.clear();
+            }
 
             tourEdge.clear();
-//            vertexReached = true;
+            vertexReached = true;
             goalPosition = goalPosition.equals(ACO.startingPosition)? goal1: ACO.startingPosition;
         }
     }

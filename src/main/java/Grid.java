@@ -88,7 +88,7 @@ public class Grid extends JPanel {
 
     public void addPheromone(Map<Point, Double> pointDoubleMap) {
         for(Map.Entry<Point, Double> pointDoubleEntry : pointDoubleMap.entrySet()) {
-            int colorValue = Math.min((int)(pointDoubleEntry.getValue()*10), 230);
+            int colorValue = Math.min((int)(pointDoubleEntry.getValue() * 255), 255);
             Color c = new Color(255, 0, 0, colorValue);
             fillPheromone.put(pointDoubleEntry.getKey(), c);
         }

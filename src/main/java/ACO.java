@@ -16,16 +16,16 @@ import java.util.List;
  */
 public class ACO {
 
-    public static final int amountOfAnts = 100;
+    public static final int amountOfAnts = 50;
     public static final Coordinate startingPosition = new Coordinate(0, 0);
     public static final double pheromoneDropRate = 200D;
-    public static final double evaporationConst = 0.1D;
+    public static final double evaporationConst = 0.35D;
     public static final double startPheromoneValue = 1.0D;
     public static final double alpha = 1.0D;
-    public static final double beta = 0.5D;
+    public static final double beta = 3.D;
 
     public static void main(String[] args) {
-        Maze maze = new Maze("src/main/resources/easy_maze.txt");
+        Maze maze = new Maze("src/main/resources/medium_maze.txt");
 
 
         List<Ant> antList = new ArrayList<>();
@@ -37,37 +37,43 @@ public class ACO {
         Grid grid = new Grid(maze.getColumns(), maze.getRows());
         JFrame window = new JFrame();
 
-        Timer timer = new Timer(1, new ActionListener() {
-            int antIndex = 0;
+        Timer t1 = new Timer(500, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Ant ant = antList.get(antIndex);
-
-                for(Ant ant1 : antList) {
-                    if(!ant1.isGoalReached())
-                        ant1.move();
-                    Point p = new Point(ant1.getCurrentPos().getColumn(), ant1.getCurrentPos().getRow());
+                for(Ant ant : antList) {
+                    Point p = new Point(ant.getCurrentPos().getColumn(), ant.getCurrentPos().getRow());
                     grid.addAnt(p);
                     grid.addPheromone(maze.getPheromonedRoute());
                     grid.repaint();
                 }
+//                System.out.println(Ant.shortestDirections);
+            }
+        });
+        t1.start();
 
-                if(!ant.isGoalReached()) {
-                    ant.move();
-                } else {
-//                    maze.evaporatePheromone();
-                    if(antIndex < amountOfAnts - 1)
-                        antIndex++;
-                    else {
-                        antIndex = 0;
-                        for(Ant ant2 : antList) {
-                            ant2.setGoalReached(false);
+
+        Thread thread = new Thread(new Runnable() {
+            int antIndex = 0;
+            @Override
+            public void run() {
+                while(true) {
+//                Ant ant = antList.get(antIndex);
+                    for(Ant ant1 : antList) {
+                        if(!ant1.isGoalReached()) {
+                            ant1.move();
+                        }
+                    }
+                    if(allGoalsReached(antList)) {
+                        antList.clear();
+                        maze.evaporatePheromone();
+                        for(int i = 0; i < amountOfAnts; i++) {
+                            antList.add(new Ant(new Coordinate(startingPosition), maze));
                         }
                     }
                 }
             }
         });
-        timer.start();
+        thread.start();
 
         EventQueue.invokeLater(new Runnable() {
             @Override
@@ -90,5 +96,13 @@ public class ACO {
             }
         });
 
+    }
+
+    private static boolean allGoalsReached(List<Ant> antList) {
+        for(Ant ant : antList) {
+            if(!ant.isGoalReached())
+                return false;
+        }
+        return true;
     }
 }

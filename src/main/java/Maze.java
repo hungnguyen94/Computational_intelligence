@@ -19,7 +19,6 @@ public class Maze {
     private int columns;
     private double[][] matrix;
     private Collection<Vertex> vertexList;
-    private Collection<Edge> edgeList;
     private Map<Coordinate, Double> pheromoneMap;
 
     // Save the coordinates of accessible points
@@ -34,7 +33,6 @@ public class Maze {
      */
     public Maze(String file) {
         vertexList = new ArrayList<Vertex>();
-        edgeList = new ArrayList<>();
         route = new ArrayList<Point>();
         walls = new ArrayList<Point>();
         pheromoneMap = new HashMap<>();
@@ -48,7 +46,6 @@ public class Maze {
     public Maze(int rows, int columns) {
         matrix = new double[rows][columns];
         vertexList = new ArrayList<Vertex>();
-        edgeList = new ArrayList<>();
         route = new ArrayList<Point>();
         walls = new ArrayList<Point>();
         pheromoneMap = new HashMap<>();
@@ -67,9 +64,16 @@ public class Maze {
     // Used for gui only.
     public Map<Point, Double> getPheromonedRoute() {
         Map<Point, Double> pheromonedRoute = new HashMap<>();
+        double totalPheromone = 0.D;
+        for(Double aDouble : pheromoneMap.values()) {
+            totalPheromone = aDouble>totalPheromone?aDouble:totalPheromone;
+        }
+
         for(Coordinate coordinate : pheromoneMap.keySet()) {
             Point p = new Point(coordinate.getColumn(), coordinate.getRow());
-            pheromonedRoute.put(p, pheromoneMap.get(coordinate));
+            double pval = (pheromoneMap.get(coordinate))/totalPheromone;
+//            System.out.println(pval);
+            pheromonedRoute.put(p, pheromoneMap.get(coordinate)/totalPheromone);
         }
         return pheromonedRoute;
     }
@@ -143,7 +147,7 @@ public class Maze {
     public void increasePheromone(Edge edge, double pheromoneRate) {
         Collection<Coordinate> coordinates = edge.getCoordinates();
         for(Coordinate coordinate : coordinates) {
-            double newPheromoneValue = (1 - ACO.evaporationConst) * pheromoneRate + pheromoneMap.getOrDefault(coordinate, ACO.startPheromoneValue);
+            double newPheromoneValue = pheromoneRate + pheromoneMap.get(coordinate);
             pheromoneMap.put(coordinate, newPheromoneValue);
         }
     }
@@ -154,7 +158,7 @@ public class Maze {
      */
     public void evaporatePheromone() {
         for(Map.Entry<Coordinate, Double> coordinateDoubleEntry : pheromoneMap.entrySet()) {
-            double newPheromone = Math.max(coordinateDoubleEntry.getValue() * (1 - ACO.evaporationConst), 0);
+            double newPheromone = coordinateDoubleEntry.getValue() * (1.0D - ACO.evaporationConst);
             coordinateDoubleEntry.setValue(newPheromone);
         }
     }
