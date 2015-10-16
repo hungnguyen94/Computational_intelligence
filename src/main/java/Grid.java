@@ -24,7 +24,7 @@ public class Grid extends JPanel {
     private Map<Point, Color> fillPheromone;
     private int xSize;
     private int ySize;
-    public final static int cellSize = 15;
+    public final static int cellSize = 10;
     public final static int antSize = 2;
 
     private int numberOfClicks;
@@ -52,6 +52,14 @@ public class Grid extends JPanel {
                 int x = (int)((e.getX()) * (1f / cellSize)) - 1;
                 int y = (int)((e.getY()) * (1f / cellSize)) - 1;
                 System.out.println(++numberOfClicks + ": " + x + ", " + y + ";");
+                if(!ACO.tspCoordinates.contains(new Coordinate(y, x))) {
+                    ACO.tspCoordinates.add(new Coordinate(y, x));
+                    fillGoals.add(new Point(x, y));
+                    Ant.shortestDirections.clear();
+                } else {
+                    ACO.tspCoordinates.remove(new Coordinate(y, x));
+                    fillGoals.remove(new Point(x, y));
+                }
             }
         });
     }
@@ -123,7 +131,7 @@ public class Grid extends JPanel {
     public void addPheromone(Map<Point, Double> pointDoubleMap) {
         for(Map.Entry<Point, Double> pointDoubleEntry : pointDoubleMap.entrySet()) {
             int colorValue = Math.min((int) (pointDoubleEntry.getValue() * 255), 255);
-            Color c = new Color(colorValue, 0, 0, Math.max(colorValue, 230));
+            Color c = new Color(colorValue, 0, 0, 230);
             fillPheromone.put(pointDoubleEntry.getKey(), c);
         }
     }

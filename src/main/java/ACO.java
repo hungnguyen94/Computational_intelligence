@@ -16,14 +16,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class ACO {
     // Variables.
-    public static final int amountOfAnts = 50;
-    public static final List<Coordinate> goalCoordinates = Coordinate.readGoalCoordinates("src/main/resources/medium_coordinates.txt");
-    public static final List<Coordinate> tspCoordinates = Coordinate.readTspCoordinates("src/main/resources/medium_tsp_products.txt");
+    private static final String difficulty = "medium";
+    public static final int amountOfAnts = 100;
+    public static final List<Coordinate> goalCoordinates = Coordinate.readGoalCoordinates("src/main/resources/" + difficulty + "_coordinates.txt");
+    public static List<Coordinate> tspCoordinates = Coordinate.readTspCoordinates("src/main/resources/"+ difficulty +"_tsp_products.txt");
     public static final Coordinate startingCoordinate = goalCoordinates.get(0);
     public static final Coordinate goalCoordinate = goalCoordinates.get(1);
     public static final double pheromoneDropRate = 1000D;
     public static final double evaporationConst = 0.3D;
-    public static final double startPheromoneValue = 1.0D;
+    public static final double startPheromoneValue = 0.000D;
     public static final double alpha = 1.0D;
     public static final double beta = 3.D;
     private static final boolean guiBoolean = true;
@@ -33,7 +34,7 @@ public class ACO {
     // Coordinate(row, column)
 
     public static void main(String[] args) {
-        Maze maze = new Maze("src/main/resources/medium_maze.txt");
+        Maze maze = new Maze("src/main/resources/"+ difficulty +"_maze.txt");
         List<Ant> antList = new CopyOnWriteArrayList<>();
         Grid grid;
         JFrame window;
@@ -45,9 +46,10 @@ public class ACO {
         if(guiBoolean) {
             grid = new Grid(maze.getColumns(), maze.getRows());
             window = new JFrame();
+            window.setTitle("Ant Colony Optimization");
 
             // Timer to update the view.
-            Timer t1 = new Timer(300, new ActionListener() {
+            Timer t1 = new Timer(200, new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     for(Ant ant : antList) {
@@ -65,13 +67,18 @@ public class ACO {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
+                try {
+                    Thread.sleep(1000);
+                } catch(InterruptedException e) {
+                    e.printStackTrace();
+                }
                 while(true) {
                     for(Ant ant : antList) {
                         if(!ant.isGoalReached()) {
                             ant.move();
                         }
                     }
-                    if(allGoalsReached(antList)) {
+                    if(allGoalsReached(antList) || numberGoalsReached(antList) > 0.1d) {
                         System.out.println("Finished iteration: " + (++currentIterations));
                         antList.clear();
                         maze.evaporatePheromone();
@@ -92,8 +99,7 @@ public class ACO {
                         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                     } catch(ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
                     }
-
-                    window.setSize(maze.getColumns() * Grid.cellSize + Grid.cellSize * 3, maze.getRows() * Grid.cellSize + Grid.cellSize * 3);
+                               window.setSize(maze.getColumns() * Grid.cellSize + Grid.cellSize * 3, maze.getRows() * Grid.cellSize + Grid.cellSize * 3);
                     window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                     window.add(grid);
                     window.setVisible(true);
@@ -120,5 +126,20 @@ public class ACO {
                 return false;
         }
         return true;
+    }
+
+    /**
+     * Returns the number of ants
+     * that reached their goal.
+     * @param antList list of ants.
+     * @return number of ants.
+     */
+    private static double numberGoalsReached(List<Ant> antList) {
+        double reached = 0.d;
+        for(Ant ant : antList) {
+            if(ant.isGoalReached())
+                reached = reached + 1.d;
+        }
+        return (reached / ACO.amountOfAnts);
     }
 }

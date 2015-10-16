@@ -136,7 +136,7 @@ public class Ant {
             double sumProbability = 0;
 
             for(Map.Entry<Direction, Double> directionDoubleEntry : probabilityDirectionMap.entrySet()) {
-                double prob = Math.min(directionDoubleEntry.getValue(), 0.99D);
+                double prob = Math.min(directionDoubleEntry.getValue(), 0.90D);
                 sumProbability += prob;
 //                System.out.println("Direction: \t" + directionDoubleEntry.getKey() + "\tProbability: " + prob);
                 if(random < sumProbability) {
@@ -189,7 +189,7 @@ public class Ant {
 
         if(tspCoordinates.size() == 0 && getCurrentPos().equals(ACO.goalCoordinate)) {
             // Pheromone value calculation and apply.
-            double pheromoneValue = Math.pow(ACO.pheromoneDropRate, ACO.alpha) * (1.0D / Math.pow(tourEdge.getSize(), ACO.beta));
+            double pheromoneValue = Math.pow(ACO.pheromoneDropRate, ACO.alpha) * (1.0D / Math.pow(tourDirections.size(), ACO.beta));
             maze.increasePheromone(tourEdge, pheromoneValue);
 
             if(shortestDirections.size() > tourDirections.size() || shortestDirections.size() == 0) {
@@ -203,6 +203,13 @@ public class Ant {
             tourEdge.clear();
             vertexReached = true;
         }
+
+//        if((tourDirections.size() > (3 * shortestDirections.size())) && shortestDirections.size() != 0) {
+//            System.out.println("ants skipped");
+//            tourDirections.clear();
+//            tourEdge.clear();
+//            vertexReached = true;
+//        }
     }
 
     /**

@@ -90,7 +90,7 @@ public class Coordinate implements Comparable {
         List<Coordinate> tspCoordinates = new ArrayList<>();
         try {
             Scanner sc = new Scanner(new File(file));
-            Pattern pattern = Pattern.compile("^\\d+.\\s*(\\d+).\\s*(\\d+);");
+            Pattern pattern = Pattern.compile("^\\d+:\\s*(\\d+).\\s*(\\d+);");
             Matcher matcher;
             sc.nextLine();
             while(sc.hasNextLine()) {
