@@ -92,10 +92,10 @@ public class Ant {
         for(Direction direction : directionList) {
             double currentPheromone = maze.getPheromone(position, direction);
             Vertex vertex = maze.getVertex(getCurrentPos());
-//            Edge edge = vertex != null?vertex.getEdge(direction): null;
+            Edge edge = vertex != null?vertex.getEdge(direction): null;
             // If edge length is unknown, use 5?
-            Edge edge = null;
-            int lengthEdge = (edge != null)? edge.getSize(): 3;
+//            Edge edge = null;
+            int lengthEdge = (edge != null)? edge.getSize(): 2000;
             double probability = Math.pow(currentPheromone, ACO.alpha) * Math.pow(1.0D/lengthEdge, ACO.beta);
 
 //            System.out.println("prob in map: " + probability

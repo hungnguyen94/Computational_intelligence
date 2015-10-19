@@ -25,7 +25,7 @@ public class Grid extends JPanel {
     private Map<Point, Color> fillPheromone;
     private int xSize;
     private int ySize;
-    public final static int cellSize = 15;
+    public final static int cellSize = 10;
     public final static int antSize = 2;
 
     private int numberOfClicks;

@@ -28,13 +28,13 @@ public class ACO {
     public static final Maze maze = new Maze("src/main/resources/"+ difficulty + "_maze.txt");
     public static final String outputRouteFile = "src/main/resources/" + difficulty + "_route.txt";
     // Ant variables
-    public static final double pheromoneDropRate = 2000D;
-    public static final double evaporationConst = 0.1D;
+    public static final double pheromoneDropRate = 200000D;
+    public static final double evaporationConst = 0.3D;
     public static final double startPheromoneValue = 1.D;
     public static final double alpha = 2.D;
     public static final double beta = 2.D;
     private static final boolean guiBoolean = true;
-    private static final double minReachedAntPercentage = 0.7d;
+    private static final double minReachedAntPercentage = 0.3d;
 
     public static final Coordinate startingCoordinate = goalCoordinates.get(0);
     public static final Coordinate goalCoordinate = goalCoordinates.get(1);

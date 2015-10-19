@@ -17,6 +17,8 @@ public class Vertex {
     }
 
     public void addVertex(Vertex vertex, Edge edge) {
+        if(vertex.getVertexCoordinate() == vertexCoordinate)
+            return;
         if(linkedVertices.get(vertex) != null) {
             if(linkedVertices.get(vertex).getSize() < edge.getSize())
                 return;
