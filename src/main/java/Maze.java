@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Maze class to represent the maze.
@@ -32,7 +33,7 @@ public class Maze {
      * @param file
      */
     public Maze(String file) {
-        vertexList = new ArrayList<Vertex>();
+        vertexList = new CopyOnWriteArrayList<Vertex>();
         route = new ArrayList<Point>();
         walls = new ArrayList<Point>();
         pheromoneMap = new HashMap<>();
@@ -64,18 +65,28 @@ public class Maze {
     // Used for gui only.
     public Map<Point, Double> getPheromonedRoute() {
         Map<Point, Double> pheromonedRoute = new HashMap<>();
-        double totalPheromone = 0.D;
+        double maxPheromone = 0.D;
         for(Double aDouble : pheromoneMap.values()) {
-            totalPheromone = aDouble>totalPheromone?aDouble:totalPheromone;
+            maxPheromone = (aDouble>maxPheromone)?aDouble:maxPheromone;
         }
+        System.out.println(maxPheromone);
 
         for(Coordinate coordinate : pheromoneMap.keySet()) {
             Point p = new Point(coordinate.getColumn(), coordinate.getRow());
-            double pval = (pheromoneMap.get(coordinate))/totalPheromone;
-//            System.out.println(pval);
-            pheromonedRoute.put(p, pheromoneMap.get(coordinate)/totalPheromone);
+            double pval = (pheromoneMap.get(coordinate))/maxPheromone;
+            pheromonedRoute.put(p, pheromoneMap.get(coordinate)/maxPheromone);
         }
         return pheromonedRoute;
+    }
+
+    public List<Point> getVertexPoints() {
+        List<Point> pointsVertices = new ArrayList<>();
+        for(Vertex vertex : vertexList) {
+            Coordinate vertexCoordinate = vertex.getVertexCoordinate();
+            Point point = new Point(vertexCoordinate.getColumn(), vertexCoordinate.getRow());
+            pointsVertices.add(point);
+        }
+        return pointsVertices;
     }
 
     public int getRows() {
@@ -156,7 +167,7 @@ public class Maze {
      * Decrease pheromove values for all coordinates
      * in the pheromoveMap.
      */
-    public void evaporatePheromone() {
+    public synchronized void evaporatePheromone() {
         for(Map.Entry<Coordinate, Double> coordinateDoubleEntry : pheromoneMap.entrySet()) {
             double newPheromone = coordinateDoubleEntry.getValue() * (1.0D - ACO.evaporationConst);
             coordinateDoubleEntry.setValue(newPheromone);
@@ -190,36 +201,27 @@ public class Maze {
 
     /**
      * returns the sum of the neighbours.
-     * @param row x
-     * @param column y
+     * @param coordinate coordinate
      * @return
      */
-    public double sumNeighbours(int row, int column) {
+    public double sumNeighbours(Coordinate coordinate) {
+        int row = coordinate.getRow();
+        int column = coordinate.getColumn();
         double sum = 0;
-        double north, east, south, west;
-        north = (row != rows)? matrix[row+1][column]: 0;
-        east = (column != columns)? matrix[row][column+1]: 0;
-        south = (row != 0)? matrix[row-1][column]: 0;
+        double north, east, south, west, northwest, southwest, northeast, southeast;
+        south = (row != rows-1)? matrix[row+1][column]: 0;
+        east = (column != columns-1)? matrix[row][column+1]: 0;
+        north = (row != 0)? matrix[row-1][column]: 0;
         west = (column != 0)? matrix[row][column-1]: 0;
-        sum = north + east + south + west;
-        return sum;
-    }
 
-    /**
-     * Slaat alle vertexList op in vertexList arraylist
-     * WORDT NIET GEBRUIKT.
-     */
-    public void calculateEdges() {
-        for(int i = 0; i < rows -1; i++) {
-            for(int j = 0; j < columns-1; j++) {
-                if(matrix[i][j] == 1) {
-                    if(sumNeighbours(i, j) >= 3) {
-                        vertexList.add(new Vertex(new Coordinate(i, j)));
-                    }
-                }
-            }
-        }
-        System.out.println(vertexList);
+        northwest = (row != rows-1)&&(column != 0)? matrix[row+1][column-1]: 0;
+        northeast = (row != rows-1)&&(column != columns-1)? matrix[row+1][column+1]: 0;
+        southwest = (row != 0)&&(column != 0)? matrix[row-1][column-1]: 0;
+        southeast = (row != 0)&&(column != columns-1)? matrix[row-1][column+1]: 0;
+
+        sum = north + east + south + west;
+        sum += northwest + northeast + southeast + southwest;
+        return sum;
     }
 
     /**

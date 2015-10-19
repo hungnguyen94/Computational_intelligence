@@ -21,10 +21,11 @@ public class Grid extends JPanel {
     private List<Point> fillRoute;
     private List<Point> fillAnts;
     private List<Point> fillGoals;
+    private List<Point> fillVertex;
     private Map<Point, Color> fillPheromone;
     private int xSize;
     private int ySize;
-    public final static int cellSize = 10;
+    public final static int cellSize = 15;
     public final static int antSize = 2;
 
     private int numberOfClicks;
@@ -33,6 +34,7 @@ public class Grid extends JPanel {
         fillWalls = new ArrayList<Point>();
         fillRoute = new ArrayList<Point>();
         fillAnts = new ArrayList<Point>();
+        fillVertex = new ArrayList<Point>();
         fillGoals = new ArrayList<Point>();
         fillPheromone = new HashMap<Point, Color>();
         this.xSize = xSize;
@@ -52,14 +54,15 @@ public class Grid extends JPanel {
                 int x = (int)((e.getX()) * (1f / cellSize)) - 1;
                 int y = (int)((e.getY()) * (1f / cellSize)) - 1;
                 System.out.println(++numberOfClicks + ": " + x + ", " + y + ";");
-                if(!ACO.tspCoordinates.contains(new Coordinate(y, x))) {
-                    ACO.tspCoordinates.add(new Coordinate(y, x));
-                    fillGoals.add(new Point(x, y));
-                    Ant.shortestDirections.clear();
-                } else {
-                    ACO.tspCoordinates.remove(new Coordinate(y, x));
-                    fillGoals.remove(new Point(x, y));
-                }
+                System.out.println(ACO.maze.getVertex(new Coordinate(y, x)));
+//                if(!ACO.tspCoordinates.contains(new Coordinate(y, x)) && fillRoute.contains(new Point(x, y))) {
+//                    ACO.tspCoordinates.add(new Coordinate(y, x));
+//                    fillGoals.add(new Point(x, y));
+//                    Ant.shortestDirections.clear();
+//                } else {
+//                    ACO.tspCoordinates.remove(new Coordinate(y, x));
+//                    fillGoals.remove(new Point(x, y));
+//                }
             }
         });
     }
@@ -76,9 +79,10 @@ public class Grid extends JPanel {
         for (Point fillCell : fillRoute) {
             int cellX = cellSize + (fillCell.x * cellSize);
             int cellY = cellSize + (fillCell.y * cellSize);
-            g.setColor(Color.WHITE);
+            g.setColor(Color.darkGray);
             g.fillRect(cellX, cellY, cellSize, cellSize);
         }
+
         for(Map.Entry<Point, Color> pointColorEntry : fillPheromone.entrySet()) {
             int cellX = cellSize + (pointColorEntry.getKey().x * cellSize);
             int cellY = cellSize + (pointColorEntry.getKey().y * cellSize);
@@ -93,6 +97,17 @@ public class Grid extends JPanel {
             g.setColor(Color.MAGENTA);
             g.fillRect(cellX, cellY, cellSize, cellSize);
         }
+
+        for (Point fillCell : fillVertex) {
+            int cellX = cellSize + (fillCell.x * cellSize);
+            int cellY = cellSize + (fillCell.y * cellSize);
+            g.setColor(Color.green);
+            int smallCellSize = (int)(cellSize*0.2);
+            int halfCell = (int) (cellSize * 0.5);
+            g.fillOval(cellX + halfCell, cellY + halfCell, smallCellSize, smallCellSize);
+        }
+        fillVertex.clear();
+
         for (Point fillCell : fillAnts) {
             int cellX = cellSize + (fillCell.x * cellSize);
             int cellY = cellSize + (fillCell.y * cellSize);
@@ -123,6 +138,10 @@ public class Grid extends JPanel {
         fillRoute.add(p);
     }
 
+    public void addVertex(List<Point> listVertex) {
+        fillVertex = new ArrayList<>(listVertex);
+    }
+
     /**
      * Add (point, color) pairs to the list to be drawn.
      * The color is calculated based on the (pheromone / highestPheromone in the Maze).
@@ -131,7 +150,7 @@ public class Grid extends JPanel {
     public void addPheromone(Map<Point, Double> pointDoubleMap) {
         for(Map.Entry<Point, Double> pointDoubleEntry : pointDoubleMap.entrySet()) {
             int colorValue = Math.min((int) (pointDoubleEntry.getValue() * 255), 255);
-            Color c = new Color(colorValue, 0, 0, 230);
+            Color c = new Color(colorValue, 0, 0, colorValue);
             fillPheromone.put(pointDoubleEntry.getKey(), c);
         }
     }

@@ -1,7 +1,7 @@
 package main.java;
 
 import java.util.Collection;
-import java.util.TreeSet;
+import java.util.HashSet;
 
 /**
  * Class to represent edges.
@@ -10,7 +10,7 @@ public class Edge {
     private Collection<Coordinate> coordinateList;
 
     public Edge() {
-        this.coordinateList = new TreeSet<>();
+        this.coordinateList = new HashSet<>();
     }
 
     /**

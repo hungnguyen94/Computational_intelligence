@@ -17,6 +17,10 @@ public class Vertex {
     }
 
     public void addVertex(Vertex vertex, Edge edge) {
+        if(linkedVertices.get(vertex) != null) {
+            if(linkedVertices.get(vertex).getSize() < edge.getSize())
+                return;
+        }
         linkedVertices.put(vertex, edge);
     }
 
@@ -28,11 +32,14 @@ public class Vertex {
     public Edge getEdge(Direction direction) {
         Coordinate position = new Coordinate(getVertexCoordinate());
         position.move(direction);
+        Edge shortestEdges = null;
         for(Map.Entry<Vertex, Edge> vertexEdgeEntry : linkedVertices.entrySet()) {
-            if(vertexEdgeEntry.getValue().containsCoordinate(position))
-                return linkedVertices.get(vertexEdgeEntry.getKey());
+            if(vertexEdgeEntry.getValue().containsCoordinate(position)) {
+                if(shortestEdges == null || linkedVertices.get(vertexEdgeEntry.getKey()).getSize() < shortestEdges.getSize())
+                    shortestEdges = linkedVertices.get(vertexEdgeEntry.getKey());
+            }
         }
-        return null;
+        return shortestEdges;
     }
 
     @Override
@@ -55,9 +62,9 @@ public class Vertex {
     @Override
     public String toString() {
         String output = "Vertex" + vertexCoordinate.toString() + " {";
-        output += "\nConnected vertices:";
-        for(Vertex vertex : linkedVertices.keySet()) {
-            output += " Vectex" + vertex.getVertexCoordinate();
+        for(Map.Entry<Vertex, Edge> vertexEdgeEntry : linkedVertices.entrySet()) {
+            output += "\n\tVertex" + vertexEdgeEntry.getKey().getVertexCoordinate() + ": ";
+            output += vertexEdgeEntry.getValue();
         }
         output += "\n}";
         return output;
