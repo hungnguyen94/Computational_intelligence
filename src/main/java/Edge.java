@@ -13,6 +13,10 @@ public class Edge implements Comparable {
         this.coordinateList = new HashSet<>();
     }
 
+    public Edge(Edge edge) {
+        this.coordinateList = new HashSet<>(edge.getCoordinates());
+    }
+
     /**
      * Add a coordinate belonging to this edge.
      * @param coord coordinate.

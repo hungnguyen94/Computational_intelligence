@@ -18,9 +18,10 @@ public class Maze {
 
     private int rows;
     private int columns;
-    private double[][] matrix;
+    public double[][] matrix;
     private Collection<Vertex> vertexList;
     private Map<Coordinate, Double> pheromoneMap;
+    private Map<Edge, Double> pheromoneQueue;
 
     // Save the coordinates of accessible points
     // and inaccessible points for drawing only.
@@ -37,6 +38,7 @@ public class Maze {
         route = new ArrayList<Point>();
         walls = new ArrayList<Point>();
         pheromoneMap = new HashMap<>();
+        pheromoneQueue = new HashMap<>();
         try {
             loadFile(file);
         } catch(FileNotFoundException e) {
@@ -69,11 +71,10 @@ public class Maze {
         for(Double aDouble : pheromoneMap.values()) {
             maxPheromone = (aDouble>maxPheromone)?aDouble:maxPheromone;
         }
-        System.out.println(maxPheromone);
+//        System.out.println(maxPheromone);
 
         for(Coordinate coordinate : pheromoneMap.keySet()) {
             Point p = new Point(coordinate.getColumn(), coordinate.getRow());
-            double pval = (pheromoneMap.get(coordinate))/maxPheromone;
             pheromonedRoute.put(p, pheromoneMap.get(coordinate)/maxPheromone);
         }
         return pheromonedRoute;
@@ -122,7 +123,7 @@ public class Maze {
                 }
             }
         }
-        //calculateEdges();
+        sc.close();
 
         // Used for drawing only.
         for(int i = 0; i < rows; i++) {
@@ -146,32 +147,54 @@ public class Maze {
     public double getPheromone(Coordinate coordinate, Direction direction) {
         Coordinate position = new Coordinate(coordinate);
         position.move(direction);
-        return pheromoneMap.get(position);
-//        return pheromoneMap.getOrDefault(position, ACO.startPheromoneValue);
+        return pheromoneMap.getOrDefault(position, ACO.startPheromoneValue);
     }
 
     /**
      * Increase pheromone on this edge.
-     * @param edge
-     * @param pheromoneRate
+     * @param edge Coordinates where pheromone has to be applied.
+     * @param pheromone Amount it has to be increased by.
      */
-    public void increasePheromone(Edge edge, double pheromoneRate) {
+    public void increasePheromone(Edge edge, double pheromone) {
         Collection<Coordinate> coordinates = edge.getCoordinates();
         for(Coordinate coordinate : coordinates) {
-            double newPheromoneValue = pheromoneRate + pheromoneMap.get(coordinate);
+            double newPheromoneValue = pheromone + pheromoneMap.getOrDefault(coordinate, 0.d);
             pheromoneMap.put(coordinate, newPheromoneValue);
         }
     }
 
     /**
+     * Enqueue the increasing of pheromone.
+     * @param edge Coordinates where pheromone has to be applied.
+     * @param pheromone Amount it has to be increased by.
+     */
+    public void enqueueIncreasePheromone(Edge edge, double pheromone) {
+        Edge enqueuedEdge = new Edge(edge);
+        pheromoneQueue.put(enqueuedEdge, pheromone);
+    }
+
+    /**
      * Decrease pheromove values for all coordinates
      * in the pheromoveMap.
+     * Then apply the enqueued pheromone.
      */
     public synchronized void evaporatePheromone() {
         for(Map.Entry<Coordinate, Double> coordinateDoubleEntry : pheromoneMap.entrySet()) {
             double newPheromone = coordinateDoubleEntry.getValue() * (1.0D - ACO.evaporationConst);
             coordinateDoubleEntry.setValue(newPheromone);
         }
+        applyPheromone();
+    }
+
+    /**
+     * Apply the pheromone for all edges in the queue.
+     */
+    public void applyPheromone() {
+        for(Map.Entry<Edge, Double> edgeDoubleEntry : pheromoneQueue.entrySet()) {
+            increasePheromone(edgeDoubleEntry.getKey(), edgeDoubleEntry.getValue());
+        }
+        System.out.println("Size: " + pheromoneQueue.size());
+        pheromoneQueue.clear();
     }
 
     /**

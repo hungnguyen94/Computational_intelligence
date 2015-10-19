@@ -22,19 +22,25 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ACO {
     // Maze settings.
     private static final String difficulty = "medium";
-    public static final int amountOfAnts = 100;
+    public static final int amountOfAnts = 250;
     public static final List<Coordinate> goalCoordinates = Coordinate.readGoalCoordinates("src/main/resources/" + difficulty + "_coordinates.txt");
     public static List<Coordinate> tspCoordinates = Coordinate.readTspCoordinates("src/main/resources/"+ difficulty + "_tsp_products.txt");
     public static final Maze maze = new Maze("src/main/resources/"+ difficulty + "_maze.txt");
     public static final String outputRouteFile = "src/main/resources/" + difficulty + "_route.txt";
     // Ant variables
-    public static final double pheromoneDropRate = 200000D;
-    public static final double evaporationConst = 0.3D;
-    public static final double startPheromoneValue = 1.D;
-    public static final double alpha = 2.D;
-    public static final double beta = 2.D;
+    public static final double pheromoneDropRate = 4000d;
+    public static final double evaporationConst = 0.3d;
+    public static final double startPheromoneValue = 1.d;
+    public static final double alpha = 1.d;
+    public static final double beta = 0.5d;
+    // If current ant route length is higher than
+    // this multiplied by the shortest route length,
+    // stop looking futher.
+    public static final double stopCriterionRouteLength = 10;
+    public static final double minReachedAntPercentage = 0.2d;
+
     private static final boolean guiBoolean = true;
-    private static final double minReachedAntPercentage = 0.3d;
+
 
     public static final Coordinate startingCoordinate = goalCoordinates.get(0);
     public static final Coordinate goalCoordinate = goalCoordinates.get(1);
@@ -120,12 +126,10 @@ public class ACO {
                     window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                     window.add(grid);
                     window.setVisible(true);
-                    for(Point p : maze.getRoute()) {
-                        grid.addRoute(p);
-                    }
-                    for(Point p : maze.getWalls()) {
-                        grid.addWall(p);
-                    }
+
+                    grid.addRoute(maze.getRoute());
+                    grid.addWalls(maze.getWalls());
+
                 }
             });
         }

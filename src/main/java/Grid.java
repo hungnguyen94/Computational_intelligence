@@ -48,40 +48,18 @@ public class Grid extends JPanel {
         Point endPoint = new Point(ACO.goalCoordinate.getColumn(), ACO.goalCoordinate.getRow());
         fillGoals.add(endPoint);
         numberOfClicks = 0;
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                int x = (int)((e.getX()) * (1f / cellSize)) - 1;
-                int y = (int)((e.getY()) * (1f / cellSize)) - 1;
-                System.out.println(++numberOfClicks + ": " + x + ", " + y + ";");
-                System.out.println(ACO.maze.getVertex(new Coordinate(y, x)));
-//                if(!ACO.tspCoordinates.contains(new Coordinate(y, x)) && fillRoute.contains(new Point(x, y))) {
-//                    ACO.tspCoordinates.add(new Coordinate(y, x));
-//                    fillGoals.add(new Point(x, y));
-//                    Ant.shortestDirections.clear();
-//                } else {
-//                    ACO.tspCoordinates.remove(new Coordinate(y, x));
-//                    fillGoals.remove(new Point(x, y));
-//                }
-            }
-        });
+        addMouseListener(new mouseHandler());
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        for (Point fillCell : fillWalls) {
-            int cellX = cellSize + (fillCell.x * cellSize);
-            int cellY = cellSize + (fillCell.y * cellSize);
-            g.setColor(Color.BLACK);
-            g.fillRect(cellX, cellY, cellSize, cellSize);
-        }
-        for (Point fillCell : fillRoute) {
-            int cellX = cellSize + (fillCell.x * cellSize);
-            int cellY = cellSize + (fillCell.y * cellSize);
-            g.setColor(Color.darkGray);
-            g.fillRect(cellX, cellY, cellSize, cellSize);
-        }
+//        for (Point fillCell : fillRoute) {
+//            int cellX = cellSize + (fillCell.x * cellSize);
+//            int cellY = cellSize + (fillCell.y * cellSize);
+//            g.setColor(Color.lightGray);
+//            g.fillRect(cellX, cellY, cellSize, cellSize);
+//        }
 
         for(Map.Entry<Point, Color> pointColorEntry : fillPheromone.entrySet()) {
             int cellX = cellSize + (pointColorEntry.getKey().x * cellSize);
@@ -118,6 +96,13 @@ public class Grid extends JPanel {
         }
         fillAnts.clear();
 
+        for (Point fillCell : fillWalls) {
+            int cellX = cellSize + (fillCell.x * cellSize);
+            int cellY = cellSize + (fillCell.y * cellSize);
+            g.setColor(Color.BLACK);
+            g.fillRect(cellX, cellY, cellSize, cellSize);
+        }
+
         g.setColor(Color.BLACK);
         g.drawRect(cellSize, cellSize, xSize * cellSize, ySize * cellSize);
 
@@ -130,12 +115,20 @@ public class Grid extends JPanel {
         }
     }
 
-    public void addWall(Point p) {
-        fillWalls.add(p);
+    public void addWallPoint(Point point) {
+        fillWalls.add(point);
     }
 
-    public void addRoute(Point p) {
-        fillRoute.add(p);
+    public void addRoutePoint(Point point) {
+        fillRoute.add(point);
+    }
+
+    public void addWalls(List<Point> wallPoints) {
+        fillWalls = wallPoints;
+    }
+
+    public void addRoute(List<Point> routePoints) {
+        fillRoute = routePoints;
     }
 
     public void addVertex(List<Point> listVertex) {
@@ -157,5 +150,25 @@ public class Grid extends JPanel {
 
     public void addAnt(Point p) {
         fillAnts.add(p);
+    }
+
+
+    class mouseHandler extends MouseAdapter {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            int x = (int)((e.getX()) * (1f / cellSize)) - 1;
+            int y = (int)((e.getY()) * (1f / cellSize)) - 1;
+            System.out.println(++numberOfClicks + ": " + x + ", " + y + ";");
+            ACO.maze.matrix[y][x] = ACO.maze.matrix[y][x] == 0? 1: 0;
+            if(ACO.maze.matrix[y][x] == 0) {
+                addWallPoint(new Point(x, y));
+            } else {
+                fillWalls.remove(new Point(x, y));
+            }
+            ACO.shortestDirections.clear();
+
+            System.out.println(ACO.maze.getVertex(new Coordinate(y, x)));
+            System.out.println(ACO.maze.getPheromone(new Coordinate(y, x), Direction.NONE));
+        }
     }
 }

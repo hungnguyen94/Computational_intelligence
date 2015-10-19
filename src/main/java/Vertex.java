@@ -23,7 +23,7 @@ public class Vertex {
             if(linkedVertices.get(vertex).getSize() < edge.getSize())
                 return;
         }
-        linkedVertices.put(vertex, edge);
+        linkedVertices.put(vertex, new Edge(edge));
     }
 
     /**

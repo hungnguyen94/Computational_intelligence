@@ -81,14 +81,6 @@ public class Ant {
         Map<Direction, Double> pheromoneDirectionMap = new HashMap<>();
         double totalProbability = 0;
 
-        Direction opposite = getOpposite(currentDirection);
-        // Delete opposite direction if
-        // there are more than 2 possibilities
-        // (so when you arent stuck)
-//        if(directionList.size() >= 2 && directionList.contains(opposite)) {
-//            directionList.remove(opposite);
-//        }
-
         for(Direction direction : directionList) {
             double currentPheromone = maze.getPheromone(position, direction);
             Vertex vertex = maze.getVertex(getCurrentPos());
@@ -118,14 +110,6 @@ public class Ant {
      */
     public Direction calcProbabilityMove() {
         List<Direction> possibleDirections = maze.getPossibleDirections(getCurrentPos());
-        Direction opposite = getOpposite(currentDirection);
-
-        // Delete opposite direction if
-        // there are more than 2 possibilities
-        // (so when you arent stuck)
-//        if(possibleDirections.size() >= 2 && possibleDirections.contains(opposite)) {
-//            possibleDirections.remove(opposite);
-//        }
 
         // If current position is on a vertex.
 //        if(maze.getVertex(getCurrentPos()) != null) {
@@ -161,22 +145,20 @@ public class Ant {
     private void checkVertex() {
         // If true, then current position is a vertex.
         int possibleDirections = maze.getPossibleDirections(getCurrentPos()).size();
-        boolean possibleDirectionsBool = possibleDirections >= 3;
-        boolean sumNeighboursSmallerThan = maze.sumNeighbours(getCurrentPos()) <= possibleDirections + 1;
+        boolean moreThanThreeDirections = possibleDirections >= 3;
+        boolean sumNeighboursSmallerThan = maze.sumNeighbours(getCurrentPos()) <= possibleDirections + 2;
         boolean isTspCoordinate = ACO.tspCoordinates.contains(getCurrentPos());
         boolean isGoalCoordinate = ACO.goalCoordinates.contains(getCurrentPos());
 
-        if(isTspCoordinate || isGoalCoordinate) {
+        if(isGoalCoordinate) {
             Vertex vertexHere =  maze.getVertex(getCurrentPos());
             // True if the vertex already exists.
-            if(vertexHere == null) {
-                // Add the new vertex.
+            if(vertexHere == null)
                 vertexHere = new Vertex(getCurrentPos());
 
-            }
             vertexHere.addVertex(lastVertex, visited);
             lastVertex.addVertex(vertexHere, visited);
-            visited = new Edge();
+            visited.clear();
             maze.addVertex(vertexHere);
             maze.addVertex(lastVertex);
             lastVertex = vertexHere;
@@ -195,14 +177,12 @@ public class Ant {
 
         if(tspGoals.size() == 0 && getCurrentPos().equals(ACO.goalCoordinate)) {
             // Pheromone value calculation and apply.
-            double pheromoneValue = Math.pow(ACO.pheromoneDropRate, ACO.alpha) * (1.0D / Math.pow(tourDirections.size(), ACO.beta));
-            maze.increasePheromone(tourEdge, pheromoneValue);
+            double pheromoneValue = ACO.pheromoneDropRate / tourDirections.size();
+            maze.enqueueIncreasePheromone(tourEdge, pheromoneValue);
 
             if(ACO.shortestDirections.size() > tourDirections.size() || ACO.shortestDirections.size() == 0) {
                 ACO.shortestDirections = tourDirections;
                 System.out.println("\nShortest route: " + ACO.shortestDirections.size());
-//                System.out.println(shortestDirections + "\n" + tourEdge);
-//                System.out.println(ACO.routeToString());
                 ACO.writeRoute();
                 tourDirections = new Stack<>();
             } else {
@@ -212,7 +192,7 @@ public class Ant {
             goalReached = true;
         }
 
-        if((tourDirections.size() > (5 * ACO.shortestDirections.size())) && ACO.shortestDirections.size() != 0) {
+        if((tourDirections.size() > (ACO.stopCriterionRouteLength * ACO.shortestDirections.size())) && ACO.shortestDirections.size() != 0) {
             tourDirections.clear();
             tourEdge.clear();
             goalReached = true;
