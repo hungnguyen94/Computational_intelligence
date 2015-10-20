@@ -3,7 +3,9 @@ package main.java;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -88,21 +90,26 @@ public class Coordinate implements Comparable {
      */
     public static List<Coordinate> readTspCoordinates(String file) {
         List<Coordinate> tspCoordinates = new ArrayList<>();
+        ACO.tspCoordinateNumberMap = new HashMap<>();
         try {
             Scanner sc = new Scanner(new File(file));
-            Pattern pattern = Pattern.compile("^\\d+:\\s*(\\d+).\\s*(\\d+);");
+            Pattern pattern = Pattern.compile("^(\\d+):\\s*(\\d+).\\s*(\\d+);");
             Matcher matcher;
             sc.nextLine();
             while(sc.hasNextLine()) {
                 String line = sc.nextLine();
                 matcher = pattern.matcher(line);
                 if(matcher.find()) {
-                    Coordinate coord = new Coordinate(Integer.valueOf(matcher.group(2)), Integer.valueOf(matcher.group(1)));
+                    Coordinate coord = new Coordinate(Integer.valueOf(matcher.group(3)), Integer.valueOf(matcher.group(2)));
                     tspCoordinates.add(coord);
+                    ACO.tspCoordinateNumberMap.put(coord, Integer.valueOf(matcher.group(1)));
                 }
             }
         } catch(FileNotFoundException e) {
             e.printStackTrace();
+        }
+        for(Map.Entry<Coordinate, Integer> coordinateProductEntry : ACO.tspCoordinateNumberMap.entrySet()) {
+            System.out.println(coordinateProductEntry.getValue() + ": " + coordinateProductEntry.getKey());
         }
         return tspCoordinates;
     }

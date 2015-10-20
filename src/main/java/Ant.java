@@ -21,6 +21,7 @@ public class Ant {
     private Direction currentDirection;
     private Vertex lastVertex;
     private Edge visited;
+    private boolean followOnlyHighest;
 
 
     /**
@@ -39,6 +40,26 @@ public class Ant {
         this.tspGoals = new ArrayList<>(ACO.tspCoordinates);
         checkVertex();
         checkPosition();
+        followOnlyHighest = false;
+    }
+
+    /**
+     * Contructor for ant with starting position x,y
+     * @param currentPos xy currentPos
+     */
+    public Ant(Coordinate currentPos, Maze maze, boolean followOnlyHighest) {
+        this.currentPos = currentPos;
+        this.maze = maze;
+        this.currentDirection = Direction.NONE;
+        this.tourDirections = new Stack<Direction>();
+        this.goalReached = false;
+        this.lastVertex = new Vertex(getCurrentPos());
+        this.visited = new Edge();
+        this.tourEdge = new Edge();
+        this.tspGoals = new ArrayList<>(ACO.tspCoordinates);
+        checkVertex();
+        checkPosition();
+        this.followOnlyHighest = true;
     }
 
     /**
@@ -81,23 +102,37 @@ public class Ant {
         Map<Direction, Double> pheromoneDirectionMap = new HashMap<>();
         double totalProbability = 0;
 
-        // Delete opposite direction if it isn't an one way edge.
-        if(directionList.size() >= 3)
+//        // Delete opposite direction if it isn't an one way edge.
+        if(maze.sumNeighbours(position) > 4 && directionList.size() > 2)
             directionList.remove(getOpposite(currentDirection));
+
+        if(followOnlyHighest) {
+            double highestPheromone = 0.d;
+            Direction highestDirection = Direction.NONE;
+            for(Direction direction : directionList) {
+                if(maze.getPheromone(position, direction) > highestPheromone) {
+                    highestDirection = direction;
+                    highestPheromone = maze.getPheromone(position, direction);
+                }
+            }
+            pheromoneDirectionMap.put(highestDirection, 10.d);
+//            System.out.println(pheromoneDirectionMap);
+            return pheromoneDirectionMap;
+        }
 
         for(Direction direction : directionList) {
             double currentPheromone = maze.getPheromone(position, direction);
             Vertex vertex = maze.getVertex(getCurrentPos());
-            Edge edge = null; //vertex != null?vertex.getEdge(direction): null;
+            Edge edge = vertex != null?vertex.getEdge(direction): null;
             int lengthEdge = (edge != null)? edge.getSize(): 20;
-            double probability = Math.pow(currentPheromone, ACO.alpha) * Math.pow(1.0D/lengthEdge, ACO.beta);
+            double probability = Math.pow(currentPheromone, ACO.alpha);// * Math.pow(1.0D/lengthEdge, ACO.beta);
 
             // Give lower probability to positions that already have been visited.
-//            Coordinate nextPosition = getCurrentPos();
-//            nextPosition.move(direction);
-//            if(tourEdge.containsCoordinate(nextPosition)) {
-//                probability *= 0.5d;
-//            }
+            Coordinate nextPosition = getCurrentPos();
+            nextPosition.move(direction);
+            if(tourEdge.containsCoordinate(nextPosition)) {
+                probability *= 0.4d;
+            }
             // Give lower probability for the opposite direction.
             probability = (direction == getOpposite(currentDirection))? probability/2: probability;
 
@@ -181,6 +216,11 @@ public class Ant {
         }
 
         if(tspGoals.size() == 0 && getCurrentPos().equals(ACO.goalCoordinate)) {
+            if(followOnlyHighest) {
+                System.out.println("follow only highest: " + tourDirections.size());
+            }
+
+
             // Pheromone value calculation and apply.
             double pheromoneValue = ACO.pheromoneDropRate / Math.pow(tourDirections.size(), 2);
             maze.enqueueIncreasePheromone(tourEdge, pheromoneValue);

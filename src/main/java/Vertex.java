@@ -31,7 +31,7 @@ public class Vertex {
      * @param direction Direction.
      * @return
      */
-    public Edge getEdge(Direction direction) {
+    public synchronized Edge getEdge(Direction direction) {
         Coordinate position = new Coordinate(getVertexCoordinate());
         position.move(direction);
         Edge shortestEdges = null;

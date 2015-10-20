@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -22,22 +23,22 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ACO {
     // Maze settings.
     private static final String difficulty = "medium";
-    public static final int amountOfAnts = 50;
+    public static final int amountOfAnts = 150;
     public static final List<Coordinate> goalCoordinates = Coordinate.readGoalCoordinates("src/main/resources/" + difficulty + "_coordinates.txt");
-    public static List<Coordinate> tspCoordinates = Coordinate.readTspCoordinates("src/main/resources/"+ difficulty + "_tsp_products.txt");
+    public static List<Coordinate> tspCoordinates = Coordinate.readTspCoordinates("asrc/main/resources/"+ difficulty + "_tsp_products.txt");
     public static final Maze maze = new Maze("src/main/resources/"+ difficulty + "_maze.txt");
     public static final String outputRouteFile = "src/main/resources/" + difficulty + "_route.txt";
     // Ant variables
-    public static final double pheromoneDropRate = 10000000000d;
+    public static final double pheromoneDropRate = 5000*5000d;
     public static final double evaporationConst = 0.3d;
     public static final double startPheromoneValue = 1.d;
-    public static final double alpha = 1.0d;
+    public static final double alpha = 2.0d;
     public static final double beta = 1.0d;
     // If current ant route length is higher than
     // this multiplied by the shortest route length,
     // stop looking further.
     public static final long stopCriterionRouteLength = 10;
-    public static final double minReachedAntPercentage = 0.2d;
+    public static final double minReachedAntPercentage = 0.3d;
     private static final boolean guiBoolean = true;
 
     private static boolean stopThread = false;
@@ -47,7 +48,7 @@ public class ACO {
     public static final Coordinate goalCoordinate = goalCoordinates.get(1);
 
     public static Stack<Direction> shortestDirections = new Stack<>();
-
+    public static Map<Coordinate, Integer> tspCoordinateNumberMap;
 
     public static int currentIterations = 0;
     public static List<Ant> allAnts = new CopyOnWriteArrayList<>();
@@ -86,6 +87,9 @@ public class ACO {
                 List<Ant> antList = new ArrayList<>();
                 for(int i = 0; i < amountOfAnts; i++) {
                     antList.add(new Ant(new Coordinate(startingCoordinate), maze));
+                }
+                for(int i = 0; i < 1; i++) {
+                    antList.add(new Ant(new Coordinate(startingCoordinate), maze, true));
                 }
                 allAnts.addAll(antList);
 
