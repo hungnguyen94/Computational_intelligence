@@ -54,12 +54,12 @@ public class Grid extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-//        for (Point fillCell : fillRoute) {
-//            int cellX = cellSize + (fillCell.x * cellSize);
-//            int cellY = cellSize + (fillCell.y * cellSize);
-//            g.setColor(Color.lightGray);
-//            g.fillRect(cellX, cellY, cellSize, cellSize);
-//        }
+        for (Point fillCell : fillRoute) {
+            int cellX = cellSize + (fillCell.x * cellSize);
+            int cellY = cellSize + (fillCell.y * cellSize);
+            g.setColor(Color.white);
+            g.fillRect(cellX, cellY, cellSize, cellSize);
+        }
 
         for(Map.Entry<Point, Color> pointColorEntry : fillPheromone.entrySet()) {
             int cellX = cellSize + (pointColorEntry.getKey().x * cellSize);
@@ -159,13 +159,12 @@ public class Grid extends JPanel {
             int x = (int)((e.getX()) * (1f / cellSize)) - 1;
             int y = (int)((e.getY()) * (1f / cellSize)) - 1;
             System.out.println(++numberOfClicks + ": " + x + ", " + y + ";");
-            ACO.maze.matrix[y][x] = ACO.maze.matrix[y][x] == 0? 1: 0;
-            if(ACO.maze.matrix[y][x] == 0) {
-                addWallPoint(new Point(x, y));
-            } else {
-                fillWalls.remove(new Point(x, y));
-            }
-            ACO.shortestDirections.clear();
+//            ACO.maze.matrix[y][x] = ACO.maze.matrix[y][x] == 0? 1: 0;
+//            if(ACO.maze.matrix[y][x] == 0)
+//                addWallPoint(new Point(x, y));
+//            else
+//                fillWalls.remove(new Point(x, y));
+//            ACO.shortestDirections.clear();
 
             System.out.println(ACO.maze.getVertex(new Coordinate(y, x)));
             System.out.println(ACO.maze.getPheromone(new Coordinate(y, x), Direction.NONE));

@@ -15,10 +15,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Maze class to represent the maze.
  */
 public class Maze {
-
     private int rows;
     private int columns;
-    public double[][] matrix;
+    private double[][] matrix;
     private Collection<Vertex> vertexList;
     private Map<Coordinate, Double> pheromoneMap;
     private Map<Edge, Double> pheromoneQueue;
@@ -99,6 +98,17 @@ public class Maze {
     }
 
     /**
+     * Returns the value at the given
+     * location in the maze.
+     * @param row Row
+     * @param column Column
+     * @return Value at location.
+     */
+    public double getXY(int row, int column) {
+        return matrix[row][column];
+    }
+
+    /**
      * Returns all the known vertices.
      * @return list of vertices.
      */
@@ -128,7 +138,7 @@ public class Maze {
         // Used for drawing only.
         for(int i = 0; i < rows; i++) {
             for(int j = 0; j < columns; j++) {
-                if (matrix[i][j] == 1) {
+                if (getXY(i, j) == 1) {
                     route.add(new Point(j, i));
                     pheromoneMap.put(new Coordinate(i, j), ACO.startPheromoneValue);
                 } else {
@@ -168,7 +178,7 @@ public class Maze {
      * @param edge Coordinates where pheromone has to be applied.
      * @param pheromone Amount it has to be increased by.
      */
-    public void enqueueIncreasePheromone(Edge edge, double pheromone) {
+    public synchronized void enqueueIncreasePheromone(Edge edge, double pheromone) {
         Edge enqueuedEdge = new Edge(edge);
         pheromoneQueue.put(enqueuedEdge, pheromone);
     }
@@ -189,11 +199,10 @@ public class Maze {
     /**
      * Apply the pheromone for all edges in the queue.
      */
-    public void applyPheromone() {
+    public synchronized void applyPheromone() {
         for(Map.Entry<Edge, Double> edgeDoubleEntry : pheromoneQueue.entrySet()) {
             increasePheromone(edgeDoubleEntry.getKey(), edgeDoubleEntry.getValue());
         }
-        System.out.println("Size: " + pheromoneQueue.size());
         pheromoneQueue.clear();
     }
 
@@ -203,20 +212,22 @@ public class Maze {
      * @return list of directions.
      */
     public List<Direction> getPossibleDirections(Coordinate position) {
-        int row = position.getRow();
-        int column = position.getColumn();
+        int currentRow = position.getRow();
+        int currentColumn = position.getColumn();
+        int maxRows = rows - 1;
+        int maxColumns = columns - 1;
         List<Direction> directions = new ArrayList<Direction>();
 
-        if(row != rows-1 && matrix[row+1][column] == 1)
+        if(currentRow != maxRows && getXY(currentRow+1, currentColumn) == 1)
             directions.add(Direction.SOUTH);
 
-        if(column != columns-1 && matrix[row][column+1] == 1)
+        if(currentColumn != maxColumns && getXY(currentRow, currentColumn+1) == 1)
             directions.add(Direction.EAST);
 
-        if(row != 0 && matrix[row-1][column] == 1)
+        if(currentRow != 0 && getXY(currentRow-1, currentColumn) == 1)
             directions.add(Direction.NORTH);
 
-        if(column != 0 && matrix[row][column-1] == 1)
+        if(currentColumn != 0 && getXY(currentRow, currentColumn-1) == 1)
             directions.add(Direction.WEST);
 
         return directions;
@@ -232,15 +243,15 @@ public class Maze {
         int column = coordinate.getColumn();
         double sum = 0;
         double north, east, south, west, northwest, southwest, northeast, southeast;
-        south = (row != rows-1)? matrix[row+1][column]: 0;
-        east = (column != columns-1)? matrix[row][column+1]: 0;
-        north = (row != 0)? matrix[row-1][column]: 0;
-        west = (column != 0)? matrix[row][column-1]: 0;
+        south = (row != rows-1)? getXY(row+1, column): 0;
+        east = (column != columns-1)? getXY(row, column+1): 0;
+        north = (row != 0)? getXY(row-1, column): 0;
+        west = (column != 0)? getXY(row, column-1): 0;
 
-        northwest = (row != rows-1)&&(column != 0)? matrix[row+1][column-1]: 0;
-        northeast = (row != rows-1)&&(column != columns-1)? matrix[row+1][column+1]: 0;
-        southwest = (row != 0)&&(column != 0)? matrix[row-1][column-1]: 0;
-        southeast = (row != 0)&&(column != columns-1)? matrix[row-1][column+1]: 0;
+        northwest = (row != rows-1)&&(column != 0)? getXY(row+1,column-1): 0;
+        northeast = (row != rows-1)&&(column != columns-1)? getXY(row+1,column+1): 0;
+        southwest = (row != 0)&&(column != 0)? getXY(row-1,column-1): 0;
+        southeast = (row != 0)&&(column != columns-1)? getXY(row-1,column+1): 0;
 
         sum = north + east + south + west;
         sum += northwest + northeast + southeast + southwest;

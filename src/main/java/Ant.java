@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Stack;
 
 /**
- * @author hung
+ * @author Hung
  */
 public class Ant {
 
@@ -81,18 +81,26 @@ public class Ant {
         Map<Direction, Double> pheromoneDirectionMap = new HashMap<>();
         double totalProbability = 0;
 
+        // Delete opposite direction if it isn't an one way edge.
+        if(directionList.size() >= 3)
+            directionList.remove(getOpposite(currentDirection));
+
         for(Direction direction : directionList) {
             double currentPheromone = maze.getPheromone(position, direction);
             Vertex vertex = maze.getVertex(getCurrentPos());
-            Edge edge = vertex != null?vertex.getEdge(direction): null;
-            // If edge length is unknown, use 5?
-//            Edge edge = null;
-            int lengthEdge = (edge != null)? edge.getSize(): 2000;
+            Edge edge = null; //vertex != null?vertex.getEdge(direction): null;
+            int lengthEdge = (edge != null)? edge.getSize(): 20;
             double probability = Math.pow(currentPheromone, ACO.alpha) * Math.pow(1.0D/lengthEdge, ACO.beta);
 
-//            System.out.println("prob in map: " + probability
-//                    + "\ncurrentpheromone: " + currentPheromone
-//                    + "\nedgelength: " + lengthEdge);
+            // Give lower probability to positions that already have been visited.
+//            Coordinate nextPosition = getCurrentPos();
+//            nextPosition.move(direction);
+//            if(tourEdge.containsCoordinate(nextPosition)) {
+//                probability *= 0.5d;
+//            }
+            // Give lower probability for the opposite direction.
+            probability = (direction == getOpposite(currentDirection))? probability/2: probability;
+
             pheromoneDirectionMap.put(direction, probability);
             totalProbability += probability;
         }
@@ -109,26 +117,24 @@ public class Ant {
      * @return Direction to take.
      */
     public Direction calcProbabilityMove() {
-        List<Direction> possibleDirections = maze.getPossibleDirections(getCurrentPos());
+        List<Direction> possibleDirections = new ArrayList<>(maze.getPossibleDirections(getCurrentPos()));
 
         // If current position is on a vertex.
 //        if(maze.getVertex(getCurrentPos()) != null) {
-        if(possibleDirections.size() >= 3) {
+        if(possibleDirections.size() >= 1) {
             Map<Direction, Double> probabilityDirectionMap = getAllProbability(getCurrentPos());
             double random = Math.random();
             double sumProbability = 0;
 
             for(Map.Entry<Direction, Double> directionDoubleEntry : probabilityDirectionMap.entrySet()) {
-                double prob = directionDoubleEntry.getValue() * 0.9d;
+                double prob = directionDoubleEntry.getValue();
                 sumProbability += prob;
-//                System.out.println("Direction: \t" + directionDoubleEntry.getKey() + "\tProbability: " + prob);
                 if(random < sumProbability) {
-//                    System.out.println("CHOSEN: \t" + directionDoubleEntry.getKey());
                     return directionDoubleEntry.getKey();
                 }
             }
         }
-
+        System.out.println("RANDOM");
         int random = (int) (Math.random() * possibleDirections.size());
         Direction nextMove = possibleDirections.get(random);
         return nextMove;
@@ -139,18 +145,17 @@ public class Ant {
     }
 
     /**
-     * If current position has more than 2 possible directions, then it must be a vertex.
      * Add a new vertex if it doesn't exist yet and connect them.
      */
     private void checkVertex() {
         // If true, then current position is a vertex.
         int possibleDirections = maze.getPossibleDirections(getCurrentPos()).size();
         boolean moreThanThreeDirections = possibleDirections >= 3;
-        boolean sumNeighboursSmallerThan = maze.sumNeighbours(getCurrentPos()) <= possibleDirections + 2;
+//        boolean sumNeighboursSmallerThan = maze.sumNeighbours(getCurrentPos()) <= possibleDirections + 2;
         boolean isTspCoordinate = ACO.tspCoordinates.contains(getCurrentPos());
         boolean isGoalCoordinate = ACO.goalCoordinates.contains(getCurrentPos());
 
-        if(isGoalCoordinate) {
+        if(isGoalCoordinate || isTspCoordinate) {
             Vertex vertexHere =  maze.getVertex(getCurrentPos());
             // True if the vertex already exists.
             if(vertexHere == null)
@@ -177,12 +182,12 @@ public class Ant {
 
         if(tspGoals.size() == 0 && getCurrentPos().equals(ACO.goalCoordinate)) {
             // Pheromone value calculation and apply.
-            double pheromoneValue = ACO.pheromoneDropRate / tourDirections.size();
+            double pheromoneValue = ACO.pheromoneDropRate / Math.pow(tourDirections.size(), 2);
             maze.enqueueIncreasePheromone(tourEdge, pheromoneValue);
 
             if(ACO.shortestDirections.size() > tourDirections.size() || ACO.shortestDirections.size() == 0) {
                 ACO.shortestDirections = tourDirections;
-                System.out.println("\nShortest route: " + ACO.shortestDirections.size());
+                System.out.println("Shortest route: " + ACO.shortestDirections.size());
                 ACO.writeRoute();
                 tourDirections = new Stack<>();
             } else {
@@ -192,11 +197,11 @@ public class Ant {
             goalReached = true;
         }
 
-        if((tourDirections.size() > (ACO.stopCriterionRouteLength * ACO.shortestDirections.size())) && ACO.shortestDirections.size() != 0) {
-            tourDirections.clear();
-            tourEdge.clear();
-            goalReached = true;
-        }
+//        if((tourDirections.size() > (ACO.stopCriterionRouteLength * ACO.shortestDirections.size())) && ACO.shortestDirections.size() != 0) {
+//            tourDirections.clear();
+//            tourEdge.clear();
+//            goalReached = true;
+//        }
     }
 
     /**
