@@ -4,6 +4,7 @@ import javax.swing.JFrame;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Point;
 import java.io.BufferedWriter;
@@ -23,26 +24,26 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ACO {
     // Maze settings.
     private static final String difficulty = "medium";
-    public static final int amountOfAnts = 150;
+    public static final int amountOfAnts = 500;
     public static final List<Coordinate> goalCoordinates = Coordinate.readGoalCoordinates("src/main/resources/" + difficulty + "_coordinates.txt");
-    public static List<Coordinate> tspCoordinates = Coordinate.readTspCoordinates("asrc/main/resources/"+ difficulty + "_tsp_products.txt");
+    public static List<Coordinate> tspCoordinates = Coordinate.readTspCoordinates("src/main/resources/"+ difficulty + "_tsp_products.txt");
     public static final Maze maze = new Maze("src/main/resources/"+ difficulty + "_maze.txt");
     public static final String outputRouteFile = "src/main/resources/" + difficulty + "_route.txt";
     // Ant variables
-    public static final double pheromoneDropRate = 5000*5000d;
+    public static final double pheromoneDropRate = 20000*20000d;
     public static final double evaporationConst = 0.3d;
     public static final double startPheromoneValue = 1.d;
-    public static final double alpha = 2.0d;
+    public static final double alpha = 4.0d;
     public static final double beta = 1.0d;
     // If current ant route length is higher than
     // this multiplied by the shortest route length,
     // stop looking further.
     public static final long stopCriterionRouteLength = 10;
-    public static final double minReachedAntPercentage = 0.3d;
+    public static final double minReachedAntPercentage = 0.005d;
     private static final boolean guiBoolean = true;
 
     private static boolean stopThread = false;
-    private static int numberOfThreads = 2;
+    private static int numberOfThreads = 1;
 
     public static final Coordinate startingCoordinate = goalCoordinates.get(0);
     public static final Coordinate goalCoordinate = goalCoordinates.get(1);
@@ -58,10 +59,7 @@ public class ACO {
         Grid grid;
         JFrame window;
         List<Thread> threadList = new ArrayList<>();
-
-        for(int i = 0; i < amountOfAnts; i++) {
-            allAnts.add(new Ant(new Coordinate(startingCoordinate), maze));
-        }
+        List<Ant> specialAnts = new CopyOnWriteArrayList<>();
 
         if(guiBoolean) {
             grid = new Grid(maze.getColumns(), maze.getRows());
@@ -74,6 +72,9 @@ public class ACO {
                     Point p = new Point(ant.getCurrentPos().getColumn(), ant.getCurrentPos().getRow());
                     grid.addAnt(p);
                 }
+                for(Ant specialAnt : specialAnts) {
+                    grid.addPoint(new Point(specialAnt.getCurrentPos().getColumn(), specialAnt.getCurrentPos().getRow()), Color.cyan);
+                }
                 grid.addVertex(maze.getVertexPoints());
                 grid.addPheromone(maze.getPheromonedRoute());
                 grid.repaint();
@@ -85,14 +86,16 @@ public class ACO {
             @Override
             public void run() {
                 List<Ant> antList = new ArrayList<>();
+                List<Ant> eAntList = new ArrayList<>();
+                for(int i = 0; i < 10; i++) {
+                    eAntList.add(new EliteAnt(new Coordinate(startingCoordinate), maze));
+                }
                 for(int i = 0; i < amountOfAnts; i++) {
                     antList.add(new Ant(new Coordinate(startingCoordinate), maze));
                 }
-                for(int i = 0; i < 1; i++) {
-                    antList.add(new Ant(new Coordinate(startingCoordinate), maze, true));
-                }
+                specialAnts.addAll(eAntList);
+                antList.addAll(eAntList);
                 allAnts.addAll(antList);
-
                 while(!stopThread) {
                     for(Ant ant : antList) {
                         if(!ant.isGoalReached())
@@ -120,6 +123,7 @@ public class ACO {
                         currentIterations++;
 //                        System.out.println("Finished iteration: " + (++currentIterations));
                         allAnts.clear();
+                        specialAnts.clear();
                         maze.evaporatePheromone();
                         stopThread = false;
                         for(Thread thread : threadList) {
@@ -191,7 +195,7 @@ public class ACO {
             if(ant.isGoalReached())
                 reached = reached + 1;
         }
-        return reached / amountOfAnts;
+        return reached / allAnts.size();
     }
 
     /**

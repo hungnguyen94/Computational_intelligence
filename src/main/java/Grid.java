@@ -22,6 +22,7 @@ public class Grid extends JPanel {
     private List<Point> fillAnts;
     private List<Point> fillGoals;
     private List<Point> fillVertex;
+    private Map<Point, Color> fillPoint;
     private Map<Point, Color> fillPheromone;
     private int xSize;
     private int ySize;
@@ -37,6 +38,7 @@ public class Grid extends JPanel {
         fillVertex = new ArrayList<Point>();
         fillGoals = new ArrayList<Point>();
         fillPheromone = new HashMap<Point, Color>();
+        fillPoint = new HashMap<>();
         this.xSize = xSize;
         this.ySize = ySize;
         for(Coordinate tspCoordinate : ACO.tspCoordinates) {
@@ -54,6 +56,7 @@ public class Grid extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+
         for (Point fillCell : fillRoute) {
             int cellX = cellSize + (fillCell.x * cellSize);
             int cellY = cellSize + (fillCell.y * cellSize);
@@ -102,6 +105,19 @@ public class Grid extends JPanel {
             g.setColor(Color.BLACK);
             g.fillRect(cellX, cellY, cellSize, cellSize);
         }
+
+        // fill points
+        for(Map.Entry<Point, Color> pointColorEntry : fillPoint.entrySet()) {
+            int cellX = cellSize + (pointColorEntry.getKey().x * cellSize);
+            int cellY = cellSize + (pointColorEntry.getKey().y * cellSize);
+            g.setColor(pointColorEntry.getValue());
+            g.fillRect( cellX + (int)((cellSize - antSize )* Math.random()),
+                    cellY + (int)((cellSize - antSize )* Math.random()),
+                    2*antSize, 2*antSize);
+        }
+        fillPoint.clear();
+
+
 
         g.setColor(Color.BLACK);
         g.drawRect(cellSize, cellSize, xSize * cellSize, ySize * cellSize);
@@ -152,6 +168,9 @@ public class Grid extends JPanel {
         fillAnts.add(p);
     }
 
+    public synchronized void addPoint(Point p, Color c) {
+        fillPoint.put(p, c);
+    }
 
     class mouseHandler extends MouseAdapter {
         @Override

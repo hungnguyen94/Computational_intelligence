@@ -13,15 +13,15 @@ public class Ant {
 
     private List<Coordinate> tspGoals;
 
-    private Coordinate currentPos;
-    private Maze maze;
-    private Stack<Direction> tourDirections;
-    private Edge tourEdge;
-    private boolean goalReached;
-    private Direction currentDirection;
-    private Vertex lastVertex;
-    private Edge visited;
-    private boolean followOnlyHighest;
+    protected Coordinate currentPos;
+    protected Maze maze;
+    protected Stack<Direction> tourDirections;
+    protected Edge tourEdge;
+    protected boolean goalReached;
+    protected Direction currentDirection;
+    protected Vertex lastVertex;
+    protected Edge visited;
+    protected boolean followOnlyHighest;
 
 
     /**
@@ -107,6 +107,7 @@ public class Ant {
             directionList.remove(getOpposite(currentDirection));
 
         if(followOnlyHighest) {
+            directionList.remove(getOpposite(currentDirection));
             double highestPheromone = 0.d;
             Direction highestDirection = Direction.NONE;
             for(Direction direction : directionList) {

@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Maze class to represent the maze.
@@ -18,7 +17,7 @@ public class Maze {
     private int rows;
     private int columns;
     private double[][] matrix;
-    private Collection<Vertex> vertexList;
+    private Map<Coordinate, Vertex> vertexMap;
     private Map<Coordinate, Double> pheromoneMap;
     private Map<Edge, Double> pheromoneQueue;
 
@@ -33,7 +32,7 @@ public class Maze {
      * @param file
      */
     public Maze(String file) {
-        vertexList = new CopyOnWriteArrayList<Vertex>();
+        vertexMap = new HashMap<Coordinate, Vertex>();
         route = new ArrayList<Point>();
         walls = new ArrayList<Point>();
         pheromoneMap = new HashMap<>();
@@ -47,7 +46,7 @@ public class Maze {
 
     public Maze(int rows, int columns) {
         matrix = new double[rows][columns];
-        vertexList = new ArrayList<Vertex>();
+        vertexMap = new HashMap<Coordinate, Vertex>();
         route = new ArrayList<Point>();
         walls = new ArrayList<Point>();
         pheromoneMap = new HashMap<>();
@@ -81,9 +80,8 @@ public class Maze {
 
     public List<Point> getVertexPoints() {
         List<Point> pointsVertices = new ArrayList<>();
-        for(Vertex vertex : vertexList) {
-            Coordinate vertexCoordinate = vertex.getVertexCoordinate();
-            Point point = new Point(vertexCoordinate.getColumn(), vertexCoordinate.getRow());
+        for(Map.Entry<Coordinate, Vertex> coordinateVertexEntry : vertexMap.entrySet()) {
+            Point point = new Point(coordinateVertexEntry.getKey().getColumn(), coordinateVertexEntry.getKey().getRow());
             pointsVertices.add(point);
         }
         return pointsVertices;
@@ -104,7 +102,7 @@ public class Maze {
      * @param column Column
      * @return Value at location.
      */
-    public double getXY(int row, int column) {
+    public synchronized double getXY(int row, int column) {
         return matrix[row][column];
     }
 
@@ -112,8 +110,8 @@ public class Maze {
      * Returns all the known vertices.
      * @return list of vertices.
      */
-    public Collection<Vertex> getAllVertex() {
-        return vertexList;
+    public Map<Coordinate, Vertex> getAllVertex() {
+        return vertexMap;
     }
 
     /**
@@ -263,11 +261,9 @@ public class Maze {
      * @param v
      */
     public void addVertex(Vertex v) {
-        for(Vertex vertex : getAllVertex()) {
-            if(vertex.equals(v))
-                return;
+        if(!vertexMap.containsKey(v.getVertexCoordinate())) {
+            vertexMap.put(v.getVertexCoordinate(), v);
         }
-        vertexList.add(v);
     }
 
     /**
@@ -277,13 +273,7 @@ public class Maze {
      * @return the vertex at coordinate
      */
     public Vertex getVertex(Coordinate coordinate) {
-        if(getAllVertex().contains(new Vertex(coordinate))) {
-            for(Vertex vertex : getAllVertex()) {
-                if(vertex.getVertexCoordinate().equals(coordinate))
-                    return vertex;
-            }
-        }
-        return null;
+        return getAllVertex().getOrDefault(coordinate, null);
     }
 
     /**
