@@ -1,5 +1,6 @@
 package main.java;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +10,8 @@ import java.util.Map;
  */
 public class EliteAnt extends Ant {
 
+    private Edge followingEdge;
+
     /**
      * Contructor for ant with starting position x,y
      *
@@ -17,6 +20,7 @@ public class EliteAnt extends Ant {
      */
     public EliteAnt(Coordinate currentPos, Maze maze) {
         super(currentPos, maze);
+        followingEdge = new Edge();
     }
 
 
@@ -53,7 +57,7 @@ public class EliteAnt extends Ant {
             Vertex vertex = maze.getVertex(getCurrentPos());
             Edge edge = vertex != null?vertex.getEdge(direction): null;
             int lengthEdge = (edge != null)? edge.getSize(): 20;
-            double probability = Math.pow(currentPheromone, 10);// * Math.pow(1.0D/lengthEdge, ACO.beta);
+            double probability = Math.pow(currentPheromone, 10) * Math.pow(1.0D/lengthEdge, ACO.beta);
 
             // Give lower probability to positions that already have been visited.
             Coordinate nextPosition = getCurrentPos();
@@ -72,5 +76,62 @@ public class EliteAnt extends Ant {
             directionDoubleEntry.setValue(directionDoubleEntry.getValue() / totalProbability);
         }
         return pheromoneDirectionMap;
+    }
+
+    /**
+     * Moves the ant.
+     */
+    @Override
+    public void move() {
+        if(goalReached)
+            return;
+
+        currentDirection = followEdge();
+//        System.out.println(currentPos + ": " + currentDirection);
+        currentPos.move(currentDirection);
+        tourDirections.push(currentDirection);
+
+        // Add coordinates to visited list.
+        visited.addCoordinates(getCurrentPos());
+        tourEdge.addCoordinates(getCurrentPos());
+
+        super.checkVertex();
+        super.checkPosition();
+    }
+
+    private Direction followEdge() {
+        if(followingEdge == null || followingEdge.getSize() <= 0) {
+            Vertex currentVertex = maze.getVertex(currentPos);
+            List<Vertex> tspVertexList = new ArrayList<>();
+            for(Coordinate coordinate : ACO.goalCoordinates) {
+                tspVertexList.add(maze.getVertex(coordinate));
+            }
+            for(Coordinate coordinate : tspGoals) {
+                tspVertexList.add(maze.getVertex(coordinate));
+            }
+            tspVertexList.remove(lastVertex);
+            tspVertexList.remove(currentVertex);
+            if(currentVertex != null) {
+                followingEdge = currentVertex.getShortestEdge(tspVertexList);
+//                System.out.println(followingEdge);
+            }
+        }
+        if(followingEdge == null)
+            return calcProbabilityMove();
+
+        List<Direction> possibleDirections = maze.getPossibleDirections(getCurrentPos());
+//        if(possibleDirections.size() > 1) {
+//            possibleDirections.remove(getOpposite(currentDirection));
+//        }
+        for(Direction possibleDirection : possibleDirections) {
+            Coordinate newPosition = getCurrentPos();
+            newPosition.move(possibleDirection);
+            if(followingEdge.containsCoordinate(newPosition)) {
+//                followingEdge.removeCoordinates(newPosition);
+//                System.out.println(possibleDirection);
+                return possibleDirection;
+            }
+        }
+        return calcProbabilityMove();
     }
 }

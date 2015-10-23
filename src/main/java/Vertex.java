@@ -1,7 +1,8 @@
 package main.java;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Vertex {
     private Coordinate vertexCoordinate;
@@ -9,21 +10,28 @@ public class Vertex {
 
     public Vertex(Coordinate vertexCoordinate) {
         this.vertexCoordinate = new Coordinate(vertexCoordinate);
-        this.linkedVertices = new HashMap<Vertex, Edge>();
+        this.linkedVertices = new ConcurrentHashMap<Vertex, Edge>();
     }
 
     public Coordinate getVertexCoordinate() {
         return vertexCoordinate;
     }
 
+    public Edge getLinkedVertexEdge(Vertex v) {
+        Edge linkedEdge = linkedVertices.getOrDefault(v, null);
+        if(linkedEdge != null)
+            return new Edge(linkedEdge);
+        return null;
+    }
+
     public void addVertex(Vertex vertex, Edge edge) {
-        if(vertex.getVertexCoordinate() == vertexCoordinate)
+        if(vertex.getVertexCoordinate().equals(vertexCoordinate))
             return;
         if(linkedVertices.get(vertex) != null) {
-            if(linkedVertices.get(vertex).getSize() < edge.getSize())
-                return;
+            if(linkedVertices.get(vertex).getSize() > edge.getSize())
+                linkedVertices.put(vertex, new Edge(edge));
         }
-        linkedVertices.put(vertex, new Edge(edge));
+
     }
 
     /**
@@ -42,6 +50,24 @@ public class Vertex {
             }
         }
         return shortestEdges;
+    }
+
+    /**
+     * Returns the shortest edge of the vertices.
+     * @param vertexList
+     * @return shortestedge
+     */
+    public synchronized Edge getShortestEdge(List<Vertex> vertexList) {
+        Coordinate position = new Coordinate(getVertexCoordinate());
+        Vertex shortestVertex = null;
+        for(Vertex vertex : vertexList) {
+            Edge linkedEdge = getLinkedVertexEdge(vertex);
+            if(linkedEdge != null && (shortestVertex == null || linkedEdge.getSize() < getLinkedVertexEdge(shortestVertex).getSize())) {
+                shortestVertex = vertex;
+            }
+            System.out.println(shortestVertex);
+        }
+        return getLinkedVertexEdge(shortestVertex);
     }
 
     @Override

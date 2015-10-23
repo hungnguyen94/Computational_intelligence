@@ -11,7 +11,7 @@ import java.util.Stack;
  */
 public class Ant {
 
-    private List<Coordinate> tspGoals;
+    protected List<Coordinate> tspGoals;
 
     protected Coordinate currentPos;
     protected Maze maze;
@@ -21,7 +21,6 @@ public class Ant {
     protected Direction currentDirection;
     protected Vertex lastVertex;
     protected Edge visited;
-    protected boolean followOnlyHighest;
 
 
     /**
@@ -40,7 +39,6 @@ public class Ant {
         this.tspGoals = new ArrayList<>(ACO.tspCoordinates);
         checkVertex();
         checkPosition();
-        followOnlyHighest = false;
     }
 
     /**
@@ -59,7 +57,6 @@ public class Ant {
         this.tspGoals = new ArrayList<>(ACO.tspCoordinates);
         checkVertex();
         checkPosition();
-        this.followOnlyHighest = true;
     }
 
     /**
@@ -106,27 +103,12 @@ public class Ant {
         if(maze.sumNeighbours(position) > 4 && directionList.size() > 2)
             directionList.remove(getOpposite(currentDirection));
 
-        if(followOnlyHighest) {
-            directionList.remove(getOpposite(currentDirection));
-            double highestPheromone = 0.d;
-            Direction highestDirection = Direction.NONE;
-            for(Direction direction : directionList) {
-                if(maze.getPheromone(position, direction) > highestPheromone) {
-                    highestDirection = direction;
-                    highestPheromone = maze.getPheromone(position, direction);
-                }
-            }
-            pheromoneDirectionMap.put(highestDirection, 10.d);
-//            System.out.println(pheromoneDirectionMap);
-            return pheromoneDirectionMap;
-        }
-
         for(Direction direction : directionList) {
             double currentPheromone = maze.getPheromone(position, direction);
             Vertex vertex = maze.getVertex(getCurrentPos());
             Edge edge = vertex != null?vertex.getEdge(direction): null;
             int lengthEdge = (edge != null)? edge.getSize(): 20;
-            double probability = Math.pow(currentPheromone, ACO.alpha);// * Math.pow(1.0D/lengthEdge, ACO.beta);
+            double probability = Math.pow(currentPheromone, ACO.alpha) * Math.pow(1.0D/lengthEdge, ACO.beta);
 
             // Give lower probability to positions that already have been visited.
             Coordinate nextPosition = getCurrentPos();
@@ -164,8 +146,7 @@ public class Ant {
 
             for(Map.Entry<Direction, Double> directionDoubleEntry : probabilityDirectionMap.entrySet()) {
                 double prob = directionDoubleEntry.getValue();
-                sumProbability += prob;
-                if(random < sumProbability) {
+                if((random -= prob) < 0) {
                     return directionDoubleEntry.getKey();
                 }
             }
@@ -183,15 +164,15 @@ public class Ant {
     /**
      * Add a new vertex if it doesn't exist yet and connect them.
      */
-    private void checkVertex() {
+    protected void checkVertex() {
         // If true, then current position is a vertex.
         int possibleDirections = maze.getPossibleDirections(getCurrentPos()).size();
         boolean moreThanThreeDirections = possibleDirections >= 3;
-//        boolean sumNeighboursSmallerThan = maze.sumNeighbours(getCurrentPos()) <= possibleDirections + 2;
+        boolean sumNeighboursSmallerThan = maze.sumNeighbours(getCurrentPos()) <= possibleDirections + 1;
         boolean isTspCoordinate = ACO.tspCoordinates.contains(getCurrentPos());
         boolean isGoalCoordinate = ACO.goalCoordinates.contains(getCurrentPos());
 
-        if(isGoalCoordinate || isTspCoordinate) {
+        if(isGoalCoordinate || isTspCoordinate ) {
             Vertex vertexHere =  maze.getVertex(getCurrentPos());
             // True if the vertex already exists.
             if(vertexHere == null)
@@ -209,7 +190,7 @@ public class Ant {
     /**
      * Check if current position is a goal that needed to be reached.
      */
-    private void checkPosition() {
+    protected void checkPosition() {
         if(ACO.tspCoordinates.contains(getCurrentPos())) {
             tspGoals.remove(getCurrentPos());
             // Set direction to none to allow walk back.
@@ -217,13 +198,9 @@ public class Ant {
         }
 
         if(tspGoals.size() == 0 && getCurrentPos().equals(ACO.goalCoordinate)) {
-            if(followOnlyHighest) {
-                System.out.println("follow only highest: " + tourDirections.size());
-            }
-
-
-            // Pheromone value calculation and apply.
-            double pheromoneValue = ACO.pheromoneDropRate / Math.pow(tourDirections.size(), 2);
+             // Pheromone value calculation and apply.
+            double pheromoneValue = ACO.pheromoneDropRate / Math.pow(tourDirections.size(), 1);
+//            System.out.println(pheromoneValue);
             maze.enqueueIncreasePheromone(tourEdge, pheromoneValue);
 
             if(ACO.shortestDirections.size() > tourDirections.size() || ACO.shortestDirections.size() == 0) {

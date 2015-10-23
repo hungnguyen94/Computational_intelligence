@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Maze class to represent the maze.
@@ -20,6 +21,7 @@ public class Maze {
     private Map<Coordinate, Vertex> vertexMap;
     private Map<Coordinate, Double> pheromoneMap;
     private Map<Edge, Double> pheromoneQueue;
+    private Map<Coordinate, Tile> pheromoneTileMap;
 
     // Save the coordinates of accessible points
     // and inaccessible points for drawing only.
@@ -32,24 +34,17 @@ public class Maze {
      * @param file
      */
     public Maze(String file) {
-        vertexMap = new HashMap<Coordinate, Vertex>();
+        vertexMap = new ConcurrentHashMap<Coordinate, Vertex>();
         route = new ArrayList<Point>();
         walls = new ArrayList<Point>();
         pheromoneMap = new HashMap<>();
         pheromoneQueue = new HashMap<>();
+        pheromoneTileMap = new HashMap<>();
         try {
             loadFile(file);
         } catch(FileNotFoundException e) {
             e.printStackTrace();
         }
-    }
-
-    public Maze(int rows, int columns) {
-        matrix = new double[rows][columns];
-        vertexMap = new HashMap<Coordinate, Vertex>();
-        route = new ArrayList<Point>();
-        walls = new ArrayList<Point>();
-        pheromoneMap = new HashMap<>();
     }
 
     // Used for gui only.
@@ -78,7 +73,7 @@ public class Maze {
         return pheromonedRoute;
     }
 
-    public List<Point> getVertexPoints() {
+    public synchronized List<Point> getVertexPoints() {
         List<Point> pointsVertices = new ArrayList<>();
         for(Map.Entry<Coordinate, Vertex> coordinateVertexEntry : vertexMap.entrySet()) {
             Point point = new Point(coordinateVertexEntry.getKey().getColumn(), coordinateVertexEntry.getKey().getRow());
