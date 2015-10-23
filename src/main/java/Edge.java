@@ -1,7 +1,7 @@
 package main.java;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 /**
  * Class to represent edges.
@@ -10,11 +10,14 @@ public class Edge implements Comparable {
     private Collection<Coordinate> coordinateList;
 
     public Edge() {
-        this.coordinateList = new HashSet<>();
+        this.coordinateList = new LinkedHashSet<>();
     }
 
     public Edge(Edge edge) {
-        this.coordinateList = new HashSet<>(edge.getCoordinates());
+        this.coordinateList = new LinkedHashSet<>(edge.getCoordinates());
+        for(Coordinate coordinate : edge.getCoordinates()) {
+            edge.addCoordinates(coordinate);
+        }
     }
 
     /**

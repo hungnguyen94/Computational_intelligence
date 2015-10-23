@@ -24,13 +24,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ACO {
     // Maze settings.
     private static final String difficulty = "medium";
-    public static final int amountOfAnts = 500;
+    public static final int amountOfAnts = 200;
+    public static final int amountOfEliteAnts = 5;
     public static final List<Coordinate> goalCoordinates = Coordinate.readGoalCoordinates("src/main/resources/" + difficulty + "_coordinates.txt");
     public static List<Coordinate> tspCoordinates = Coordinate.readTspCoordinates("src/main/resources/"+ difficulty + "_tsp_products.txt");
     public static final Maze maze = new Maze("src/main/resources/"+ difficulty + "_maze.txt");
     public static final String outputRouteFile = "src/main/resources/" + difficulty + "_route.txt";
     // Ant variables
-    public static final double pheromoneDropRate = 20000*20000d;
+    public static final double pheromoneDropRate = Math.pow(1000d, 1);
     public static final double evaporationConst = 0.3d;
     public static final double startPheromoneValue = 1.d;
     public static final double alpha = 4.0d;
@@ -39,7 +40,7 @@ public class ACO {
     // this multiplied by the shortest route length,
     // stop looking further.
     public static final long stopCriterionRouteLength = 10;
-    public static final double minReachedAntPercentage = 0.005d;
+    public static final double minReachedAntPercentage = 0.2d;
     private static final boolean guiBoolean = true;
 
     private static boolean stopThread = false;
@@ -67,7 +68,7 @@ public class ACO {
             window.setTitle("Ant Colony Optimization");
 
             // Timer to update the view.
-            Timer t1 = new Timer(20, (e) -> {
+            Timer t1 = new Timer(0, (e) -> {
                 for(Ant ant : allAnts) {
                     Point p = new Point(ant.getCurrentPos().getColumn(), ant.getCurrentPos().getRow());
                     grid.addAnt(p);
@@ -87,7 +88,7 @@ public class ACO {
             public void run() {
                 List<Ant> antList = new ArrayList<>();
                 List<Ant> eAntList = new ArrayList<>();
-                for(int i = 0; i < 10; i++) {
+                for(int i = 0; i < amountOfEliteAnts; i++) {
                     eAntList.add(new EliteAnt(new Coordinate(startingCoordinate), maze));
                 }
                 for(int i = 0; i < amountOfAnts; i++) {
@@ -156,7 +157,7 @@ public class ACO {
                     } catch(ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
                     }
 
-                    window.setSize(maze.getColumns() * Grid.cellSize + Grid.cellSize * 3, maze.getRows() * Grid.cellSize + Grid.cellSize * 3);
+                    window.setSize(maze.getColumns() * Grid.cellSize + Grid.cellSize * 3, maze.getRows() * Grid.cellSize + Grid.cellSize * 4);
                     window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                     window.add(grid);
                     window.setVisible(true);
@@ -195,7 +196,7 @@ public class ACO {
             if(ant.isGoalReached())
                 reached = reached + 1;
         }
-        return reached / allAnts.size();
+        return reached / (allAnts.size() - 1);
     }
 
     /**
