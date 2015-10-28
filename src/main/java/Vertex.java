@@ -1,8 +1,9 @@
 package main.java;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Vertex {
     private Coordinate vertexCoordinate;
@@ -10,7 +11,7 @@ public class Vertex {
 
     public Vertex(Coordinate vertexCoordinate) {
         this.vertexCoordinate = new Coordinate(vertexCoordinate);
-        this.linkedVertices = new ConcurrentHashMap<Vertex, Edge>();
+        this.linkedVertices = new HashMap<Vertex, Edge>();
     }
 
     public Coordinate getVertexCoordinate() {
@@ -18,18 +19,32 @@ public class Vertex {
     }
 
     public Edge getLinkedVertexEdge(Vertex v) {
+        if(v == null)
+            return new Edge();
         Edge linkedEdge = linkedVertices.getOrDefault(v, null);
         if(linkedEdge != null)
             return new Edge(linkedEdge);
-        return null;
+
+        return new Edge();
+    }
+
+    public int getLinkedVertexLength(Vertex v) {
+        if(v == null)
+            return 99999999;
+        Edge linkedEdge = linkedVertices.getOrDefault(v, null);
+        if(linkedEdge != null)
+            return linkedEdge.getSize();
+        return 99999999;
     }
 
     public void addVertex(Vertex vertex, Edge edge) {
-        if(vertex.getVertexCoordinate().equals(vertexCoordinate))
+        if(vertex.getVertexCoordinate() == getVertexCoordinate())
             return;
         if(linkedVertices.get(vertex) != null) {
             if(linkedVertices.get(vertex).getSize() > edge.getSize())
                 linkedVertices.put(vertex, new Edge(edge));
+        } else {
+            linkedVertices.put(vertex, new Edge(edge));
         }
 
     }
@@ -60,12 +75,17 @@ public class Vertex {
     public synchronized Edge getShortestEdge(List<Vertex> vertexList) {
         Coordinate position = new Coordinate(getVertexCoordinate());
         Vertex shortestVertex = null;
+        List<Vertex> filteredNullList = new ArrayList<>();
         for(Vertex vertex : vertexList) {
+            if(vertex != null) {
+                filteredNullList.add(vertex);
+            }
+        }
+        for(Vertex vertex : filteredNullList) {
             Edge linkedEdge = getLinkedVertexEdge(vertex);
             if(linkedEdge != null && (shortestVertex == null || linkedEdge.getSize() < getLinkedVertexEdge(shortestVertex).getSize())) {
                 shortestVertex = vertex;
             }
-            System.out.println(shortestVertex);
         }
         return getLinkedVertexEdge(shortestVertex);
     }
@@ -89,6 +109,16 @@ public class Vertex {
 
     @Override
     public String toString() {
+        String output = "Vertex" + vertexCoordinate.toString() + " {";
+        for(Map.Entry<Vertex, Edge> vertexEdgeEntry : linkedVertices.entrySet()) {
+            output += "\n\tVertex" + vertexEdgeEntry.getKey().getVertexCoordinate() + ": ";
+            output += vertexEdgeEntry.getValue();
+        }
+        output += "\n}";
+        return output;
+    }
+
+    public String toString2() {
         String output = "Vertex" + vertexCoordinate.toString() + " {";
         for(Map.Entry<Vertex, Edge> vertexEdgeEntry : linkedVertices.entrySet()) {
             output += "\n\tVertex" + vertexEdgeEntry.getKey().getVertexCoordinate() + ": ";

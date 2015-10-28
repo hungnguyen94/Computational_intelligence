@@ -1,13 +1,13 @@
 package main.java;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Class to represent edges.
  */
 public class Edge implements Comparable {
-    private Collection<Coordinate> coordinateList;
+    private Set<Coordinate> coordinateList;
 
     public Edge() {
         this.coordinateList = new LinkedHashSet<>();
@@ -28,6 +28,18 @@ public class Edge implements Comparable {
         coordinateList.add(new Coordinate(coord));
     }
 
+    /**
+     * Add a coordinate belonging to this edge.
+     * @param edge Edge.
+     */
+    public void addEdge(Edge edge) {
+        if(edge != null) {
+            for(Coordinate coordinate : edge.getCoordinates()) {
+                coordinateList.add(coordinate);
+            }
+        }
+    }
+
     public int getSize() {
         return coordinateList.size();
     }
@@ -44,7 +56,7 @@ public class Edge implements Comparable {
      * Returns all coordinates in this edge.
      * @return all coordinates in this edge.
      */
-    public Collection<Coordinate> getCoordinates() {
+    public Set<Coordinate> getCoordinates() {
         return coordinateList;
     }
 

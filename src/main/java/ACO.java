@@ -1,5 +1,9 @@
 package main.java;
 
+import main.java.tsp.GA;
+import main.java.tsp.Population;
+import main.java.tsp.TourManager;
+
 import javax.swing.JFrame;
 import javax.swing.Timer;
 import javax.swing.UIManager;
@@ -7,12 +11,15 @@ import javax.swing.UnsupportedLookAndFeelException;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -23,15 +30,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class ACO {
     // Maze settings.
-    private static final String difficulty = "medium";
-    public static final int amountOfAnts = 200;
-    public static final int amountOfEliteAnts = 5;
+    private static final String difficulty = "hard";
+    public static final int amountOfAnts = 25;
+    public static final int amountOfEliteAnts = 1;
     public static final List<Coordinate> goalCoordinates = Coordinate.readGoalCoordinates("src/main/resources/" + difficulty + "_coordinates.txt");
     public static List<Coordinate> tspCoordinates = Coordinate.readTspCoordinates("src/main/resources/"+ difficulty + "_tsp_products.txt");
     public static final Maze maze = new Maze("src/main/resources/"+ difficulty + "_maze.txt");
     public static final String outputRouteFile = "src/main/resources/" + difficulty + "_route.txt";
     // Ant variables
-    public static final double pheromoneDropRate = Math.pow(1000d, 1);
+    public static final double pheromoneDropRate = Math.pow(10000d, 1);
     public static final double evaporationConst = 0.3d;
     public static final double startPheromoneValue = 1.d;
     public static final double alpha = 4.0d;
@@ -40,11 +47,11 @@ public class ACO {
     // this multiplied by the shortest route length,
     // stop looking further.
     public static final long stopCriterionRouteLength = 10;
-    public static final double minReachedAntPercentage = 0.2d;
+    public static final double minReachedAntPercentage = 0.5d;
     private static final boolean guiBoolean = true;
 
     private static boolean stopThread = false;
-    private static int numberOfThreads = 1;
+    private static int numberOfThreads = 4;
 
     public static final Coordinate startingCoordinate = goalCoordinates.get(0);
     public static final Coordinate goalCoordinate = goalCoordinates.get(1);
@@ -68,7 +75,7 @@ public class ACO {
             window.setTitle("Ant Colony Optimization");
 
             // Timer to update the view.
-            Timer t1 = new Timer(0, (e) -> {
+            Timer t1 = new Timer(200, (e) -> {
                 for(Ant ant : allAnts) {
                     Point p = new Point(ant.getCurrentPos().getColumn(), ant.getCurrentPos().getRow());
                     grid.addAnt(p);
@@ -148,6 +155,64 @@ public class ACO {
 
         Thread resetThread = new Thread(resetAnts);
         resetThread.start();
+
+        Timer t2 = new Timer(5000, new ActionListener() {
+            boolean citiesAdded = false;
+            Population pop = null;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(maze.getAllVertex().size() < (ACO.tspCoordinates.size() + 2)) {
+                    System.out.println(maze.getAllVertex().size());
+                    return;
+                }
+
+                if(!citiesAdded) {
+                    TourManager.clearCities();
+                    for(Vertex vertex : maze.getAllVertex().values()) {
+                        if(!vertex.equals(maze.getVertex(ACO.startingCoordinate))) {
+                            if(!vertex.equals(maze.getVertex(ACO.goalCoordinate))) {
+                                TourManager.addCity(vertex);
+                            }
+                        }
+                    }
+                    citiesAdded = true;
+                }
+
+                if(pop == null) {
+                    // Initialize population
+                    pop = new Population(50, true);
+                }
+
+                System.out.println("Initial distance: " + pop.getFittest().getDistance());
+
+                // Evolve population for 100 generations
+                pop = GA.evolvePopulation(pop);
+                for (int i = 0; i < 200; i++) {
+                    pop = GA.evolvePopulation(pop);
+                }
+
+                // Print final results
+                System.out.println("Final distance: " + pop.getFittest().getDistance());
+                System.out.println("Solution:");
+                System.out.println(pop.getFittest());
+                Edge totalEdge = new Edge(ACO.maze.getVertex(ACO.startingCoordinate).getLinkedVertexEdge(pop.getFittest().getCity(0)));
+                for(int i = 0; i < pop.getFittest().tourSize() - 1; i++) {
+                    totalEdge.addEdge(pop.getFittest().getCity(i).getLinkedVertexEdge(pop.getFittest().getCity(i + 1)));
+                }
+                totalEdge.addEdge(pop.getFittest().getLastCity().getLinkedVertexEdge(maze.getVertex(ACO.goalCoordinate)));
+
+                Map<Point, Color> pointColorMap = new LinkedHashMap<>();
+                int count = 1;
+                for(Coordinate coordinate : totalEdge.getCoordinates()) {
+                    int colorValue = (255 * count) / totalEdge.getSize();
+                    count++;
+                    pointColorMap.put(new Point(coordinate.getColumn(), coordinate.getRow()), new Color(0, Math.min(colorValue, 255), Math.max(255-colorValue, 10)));
+                }
+                grid.setEdge(pointColorMap);
+            }
+        });
+        t2.setInitialDelay(10000);
+        t2.start();
         if(guiBoolean) {
             EventQueue.invokeLater(new Runnable() {
                 @Override

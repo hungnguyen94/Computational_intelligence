@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Grid class to gui draw.
@@ -24,6 +25,7 @@ public class Grid extends JPanel {
     private List<Point> fillVertex;
     private Map<Point, Color> fillPoint;
     private Map<Point, Color> fillPheromone;
+    private Map<Point, Color> fillEdge;
     private int xSize;
     private int ySize;
     public final static int cellSize = 10;
@@ -38,6 +40,7 @@ public class Grid extends JPanel {
         fillVertex = new ArrayList<Point>();
         fillGoals = new ArrayList<Point>();
         fillPheromone = new HashMap<Point, Color>();
+        fillEdge = new HashMap<>();
         fillPoint = new HashMap<>();
         this.xSize = xSize;
         this.ySize = ySize;
@@ -117,6 +120,15 @@ public class Grid extends JPanel {
         }
         fillPoint.clear();
 
+        // fill edge
+        for(Map.Entry<Point, Color> pointColorEntry : fillEdge.entrySet()) {
+            int cellX = cellSize + (pointColorEntry.getKey().x * cellSize);
+            int cellY = cellSize + (pointColorEntry.getKey().y * cellSize);
+            g.setColor(pointColorEntry.getValue());
+            int quarterCellSize = (int) (cellSize * 0.25d);
+            g.fillRect(cellX + quarterCellSize, cellY + quarterCellSize, quarterCellSize * 2, quarterCellSize * 2);
+        }
+
 
 
         g.setColor(Color.BLACK);
@@ -159,7 +171,7 @@ public class Grid extends JPanel {
     public void addPheromone(Map<Point, Double> pointDoubleMap) {
         for(Map.Entry<Point, Double> pointDoubleEntry : pointDoubleMap.entrySet()) {
             int colorValue = Math.min((int) (pointDoubleEntry.getValue() * 255), 255);
-            Color c = new Color(colorValue, 0, 0, colorValue);
+            Color c = new Color(colorValue, 0, 0, Math.max(200, colorValue));
             fillPheromone.put(pointDoubleEntry.getKey(), c);
         }
     }
@@ -172,20 +184,53 @@ public class Grid extends JPanel {
         fillPoint.put(p, c);
     }
 
+    public synchronized void setPoints(Map<Point, Color> pointColorMap) {
+        fillPoint = pointColorMap;
+    }
+
+    public synchronized void setEdge(Map<Point, Color> pointColorMap) {
+        fillEdge = pointColorMap;
+    }
+
+    private void drawEdge(Vertex clickedVertex) {
+        List<Edge> edgeList = new CopyOnWriteArrayList<>();
+        for(Map.Entry<Coordinate, Vertex> coordinateVertexEntry : ACO.maze.getAllVertex().entrySet()) {
+            edgeList.add(clickedVertex.getLinkedVertexEdge(coordinateVertexEntry.getValue()));
+        }
+        for(Edge edge : edgeList) {
+            if(edge != null) {
+                for(Coordinate coordinate : edge.getCoordinates()) {
+                    addPoint(new Point(coordinate.getColumn(), coordinate.getRow()), Color.orange);
+                }
+            }
+        }
+    }
+
     class mouseHandler extends MouseAdapter {
         @Override
         public void mouseClicked(MouseEvent e) {
             int x = (int)((e.getX()) * (1f / cellSize)) - 1;
             int y = (int)((e.getY()) * (1f / cellSize)) - 1;
             System.out.println(++numberOfClicks + ": " + x + ", " + y + ";");
-//            ACO.maze.matrix[y][x] = ACO.maze.matrix[y][x] == 0? 1: 0;
-//            if(ACO.maze.matrix[y][x] == 0)
-//                addWallPoint(new Point(x, y));
-//            else
-//                fillWalls.remove(new Point(x, y));
-//            ACO.shortestDirections.clear();
 
-            System.out.println(ACO.maze.getVertex(new Coordinate(y, x)));
+            Vertex clickedVertex = ACO.maze.getVertex(new Coordinate(y, x));
+            System.out.println(clickedVertex);
+            try {
+                drawEdge(clickedVertex);
+            } catch(Exception exception) {
+            }
+//            List<Edge> edgeList = new CopyOnWriteArrayList<>();
+//            for(Map.Entry<Coordinate, Vertex> coordinateVertexEntry : ACO.maze.getAllVertex().entrySet()) {
+//                edgeList.add(clickedVertex.getLinkedVertexEdge(coordinateVertexEntry.getValue()));
+//            }
+//            for(Edge edge : edgeList) {
+//                if(edge != null) {
+//                    for(Coordinate coordinate : edge.getCoordinates()) {
+//                        addPoint(new Point(coordinate.getColumn(), coordinate.getRow()), Color.orange);
+//                    }
+//                }
+//            }
+
             System.out.println(ACO.maze.getPheromone(new Coordinate(y, x), Direction.NONE));
         }
     }

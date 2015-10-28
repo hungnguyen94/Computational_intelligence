@@ -134,7 +134,7 @@ public class Coordinate implements Comparable {
     @Override
     public int hashCode() {
         int result = row;
-        result = 100 * result + column;
+        result = 31 * result + column;
         return result;
     }
 

@@ -63,10 +63,10 @@ public class EliteAnt extends Ant {
             Coordinate nextPosition = getCurrentPos();
             nextPosition.move(direction);
             if(tourEdge.containsCoordinate(nextPosition)) {
-                probability *= 0.3d;
+                probability *= 0.1d;
             }
             // Give lower probability for the opposite direction.
-            probability = (direction == getOpposite(currentDirection))? probability*0.4d: probability;
+            probability = (direction == getOpposite(currentDirection))? probability*0.1d: probability;
 
             pheromoneDirectionMap.put(direction, probability);
             totalProbability += probability;
@@ -86,7 +86,7 @@ public class EliteAnt extends Ant {
         if(goalReached)
             return;
 
-        currentDirection = followEdge();
+        currentDirection = calcProbabilityMove();
 //        System.out.println(currentPos + ": " + currentDirection);
         currentPos.move(currentDirection);
         tourDirections.push(currentDirection);
@@ -101,35 +101,25 @@ public class EliteAnt extends Ant {
 
     private Direction followEdge() {
         if(followingEdge == null || followingEdge.getSize() <= 0) {
-            Vertex currentVertex = maze.getVertex(currentPos);
-            List<Vertex> tspVertexList = new ArrayList<>();
-            for(Coordinate coordinate : ACO.goalCoordinates) {
-                tspVertexList.add(maze.getVertex(coordinate));
+            if(maze.getVertex(getCurrentPos()) == null) {
+                return calcProbabilityMove();
             }
-            for(Coordinate coordinate : tspGoals) {
-                tspVertexList.add(maze.getVertex(coordinate));
+            Vertex currentVertex = maze.getVertex(getCurrentPos());
+            List<Vertex> goalVertexList = new ArrayList<>();
+            for(Coordinate tspGoal : tspGoals) {
+                goalVertexList.add(maze.getVertex(tspGoal));
             }
-            tspVertexList.remove(lastVertex);
-            tspVertexList.remove(currentVertex);
-            if(currentVertex != null) {
-                followingEdge = currentVertex.getShortestEdge(tspVertexList);
-//                System.out.println(followingEdge);
-            }
+            goalVertexList.add(maze.getVertex(ACO.goalCoordinate));
+            followingEdge = currentVertex.getShortestEdge(goalVertexList);
         }
-        if(followingEdge == null)
-            return calcProbabilityMove();
-
-        List<Direction> possibleDirections = maze.getPossibleDirections(getCurrentPos());
-//        if(possibleDirections.size() > 1) {
-//            possibleDirections.remove(getOpposite(currentDirection));
-//        }
-        for(Direction possibleDirection : possibleDirections) {
-            Coordinate newPosition = getCurrentPos();
-            newPosition.move(possibleDirection);
-            if(followingEdge.containsCoordinate(newPosition)) {
-//                followingEdge.removeCoordinates(newPosition);
-//                System.out.println(possibleDirection);
-                return possibleDirection;
+        if(followingEdge != null && followingEdge.containsCoordinate(getCurrentPos())) {
+            followingEdge.removeCoordinates(getCurrentPos());
+            for(Direction direction : maze.getPossibleDirections(getCurrentPos())) {
+                Coordinate nextCoordinate = getCurrentPos();
+                nextCoordinate.move(direction);
+                if(followingEdge.containsCoordinate(nextCoordinate)) {
+                    return direction;
+                }
             }
         }
         return calcProbabilityMove();

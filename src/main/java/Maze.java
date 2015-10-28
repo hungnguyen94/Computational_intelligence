@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Maze class to represent the maze.
@@ -34,7 +33,7 @@ public class Maze {
      * @param file
      */
     public Maze(String file) {
-        vertexMap = new ConcurrentHashMap<Coordinate, Vertex>();
+        vertexMap = new HashMap<Coordinate, Vertex>();
         route = new ArrayList<Point>();
         walls = new ArrayList<Point>();
         pheromoneMap = new HashMap<>();
@@ -268,7 +267,8 @@ public class Maze {
      * @return the vertex at coordinate
      */
     public Vertex getVertex(Coordinate coordinate) {
-        return getAllVertex().getOrDefault(coordinate, null);
+        return getAllVertex().get(coordinate);
+//        return getAllVertex().getOrDefault(coordinate, null);
     }
 
     /**

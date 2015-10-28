@@ -107,17 +107,17 @@ public class Ant {
             double currentPheromone = maze.getPheromone(position, direction);
             Vertex vertex = maze.getVertex(getCurrentPos());
             Edge edge = vertex != null?vertex.getEdge(direction): null;
-            int lengthEdge = (edge != null)? edge.getSize(): 20;
+            int lengthEdge = (edge != null)? edge.getSize(): 200;
             double probability = Math.pow(currentPheromone, ACO.alpha) * Math.pow(1.0D/lengthEdge, ACO.beta);
 
             // Give lower probability to positions that already have been visited.
             Coordinate nextPosition = getCurrentPos();
             nextPosition.move(direction);
             if(tourEdge.containsCoordinate(nextPosition)) {
-                probability *= 0.4d;
+                probability *= 0.5d;
             }
             // Give lower probability for the opposite direction.
-            probability = (direction == getOpposite(currentDirection))? probability/2: probability;
+            probability = (direction == getOpposite(currentDirection))? probability/4: probability;
 
             pheromoneDirectionMap.put(direction, probability);
             totalProbability += probability;
